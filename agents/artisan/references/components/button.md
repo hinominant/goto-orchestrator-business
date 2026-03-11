@@ -75,10 +75,10 @@ interface ButtonProps {
 
 | Variant | Background | Text | Border | Use Case |
 |---------|-----------|------|--------|----------|
-| primary | `var(--color-primary)` | `var(--color-primary-foreground)` | none | 主要アクション（1画面に1つ） |
-| secondary | `var(--color-secondary)` | `var(--color-secondary-foreground)` | `var(--color-border)` | 補助アクション |
-| ghost | transparent | `var(--color-foreground)` | none | 低優先度アクション、ツールバー |
-| danger | `var(--color-destructive)` | `var(--color-destructive-foreground)` | none | 破壊的操作（削除、取消） |
+| primary | `bg-emphasis` Brand/600 `#5538EE` | `text-inverse` `#FFFFFF` | none | 主要アクション（1画面に1つ） |
+| secondary | `bg-default` `#FFFFFF` | `text-default` `#27272A` | `border-default` `#DADADD` | 補助アクション |
+| ghost | transparent | `text-default` `#27272A` | none | 低優先度アクション、ツールバー |
+| danger | `bg-critical` Red/600 `#FF001F` | `text-inverse` `#FFFFFF` | none | 破壊的操作（削除、取消） |
 
 ### Icon-Only
 
@@ -106,16 +106,26 @@ interface ButtonProps {
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--btn-primary-bg` | `var(--color-primary)` | `var(--color-primary)` | Primary背景 |
-| `--btn-primary-text` | `var(--color-primary-foreground)` | `var(--color-primary-foreground)` | Primaryテキスト |
-| `--btn-secondary-bg` | `var(--color-secondary)` | `var(--color-secondary)` | Secondary背景 |
-| `--btn-ghost-hover-bg` | `var(--color-muted)` | `var(--color-muted)` | Ghostホバー背景 |
-| `--btn-danger-bg` | `var(--color-destructive)` | `var(--color-destructive)` | Danger背景 |
-| `--btn-radius` | `var(--radius-md)` | same | 角丸 |
-| `--btn-font-weight` | `var(--font-weight-medium)` | same | フォントウェイト |
-| `--btn-transition` | `150ms ease` | same | トランジション |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--btn-primary-bg` | `var(--color-bg-emphasis)` | Brand/600 `#5538EE` | Primary背景 |
+| `--btn-primary-text` | `var(--color-text-inverse)` | Black/0 `#FFFFFF` | Primaryテキスト |
+| `--btn-primary-hover-bg` | `var(--color-bg-emphasis-interactive)` | Brand/700 `#4D2FD3` | Primaryホバー |
+| `--btn-secondary-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | Secondary背景 |
+| `--btn-secondary-border` | `var(--color-border-default)` | Black/200 `#DADADD` | Secondaryボーダー |
+| `--btn-secondary-text` | `var(--color-text-default)` | Black/950 `#27272A` | Secondaryテキスト |
+| `--btn-ghost-hover-bg` | `var(--color-bg-interactive)` | Black/100 `#EFEEF0` | Ghostホバー背景 |
+| `--btn-danger-bg` | `var(--color-bg-critical)` | Red/600 `#FF001F` | Danger背景 |
+| `--btn-danger-hover-bg` | `var(--color-bg-critical-interactive)` | Red/700 `#D7001A` | Dangerホバー |
+| `--btn-danger-text` | `var(--color-text-inverse)` | Black/0 `#FFFFFF` | Dangerテキスト |
+| `--btn-disabled-bg` | `var(--color-bg-disabled)` | Black/200 `#DADADD` | 無効背景 |
+| `--btn-disabled-text` | `var(--color-text-disabled)` | Black/400 `#94939D` | 無効テキスト |
+| `--btn-radius` | `var(--radius-md)` | `12px` | 角丸 |
+| `--btn-font-weight` | `var(--font-weight-bold)` | `700` | フォントウェイト |
+| `--btn-font-family` | `var(--font-family)` | `Noto Sans JP` | フォント |
+| `--btn-transition` | `150ms ease` | — | トランジション |
 
 ---
 

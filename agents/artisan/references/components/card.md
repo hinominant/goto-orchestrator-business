@@ -126,18 +126,20 @@ Card.Footer: ({ children }) => ReactNode;
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--card-bg` | `var(--color-background)` | `var(--color-gray-800)` | 背景 |
-| `--card-border` | `var(--color-border)` | `var(--color-gray-700)` | ボーダー |
-| `--card-shadow` | `var(--shadow-sm)` | `none` | デフォルトシャドウ |
-| `--card-shadow-hover` | `var(--shadow-md)` | `var(--shadow-sm)` | ホバーシャドウ |
-| `--card-selected-border` | `var(--color-primary)` | `var(--color-primary)` | 選択時ボーダー |
-| `--card-selected-bg` | `var(--color-primary-50)` | `var(--color-primary-900)` | 選択時背景 |
-| `--card-radius` | `var(--radius-lg)` | same | 角丸 |
-| `--card-media-radius` | `var(--radius-lg) var(--radius-lg) 0 0` | same | メディア角丸 |
-| `--card-padding` | `var(--space-4)` | same | 内部パディング |
-| `--card-gap` | `var(--space-3)` | same | セクション間余白 |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--card-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | 背景 |
+| `--card-border` | `var(--color-border-default)` | Black/200 `#DADADD` | ボーダー |
+| `--card-selected-border` | `var(--color-border-emphasis)` | Brand/600 `#5538EE` | 選択時ボーダー |
+| `--card-selected-bg` | `var(--color-bg-secondary)` | Brand/50 `#EDEFFF` | 選択時背景 |
+| `--card-radius` | `var(--radius-lg)` | `16px` | 角丸 |
+| `--card-media-radius` | `var(--radius-lg) var(--radius-lg) 0 0` | `16px 16px 0 0` | メディア角丸 |
+| `--card-padding` | `var(--space-lg)` | `16px` | 内部パディング |
+| `--card-gap` | `var(--space-md)` | `12px` | セクション間余白 |
+| `--card-text` | `var(--color-text-default)` | Black/950 `#27272A` | テキスト |
+| `--card-text-secondary` | `var(--color-text-secondary)` | Black/500 `#777681` | 補助テキスト |
 
 ---
 

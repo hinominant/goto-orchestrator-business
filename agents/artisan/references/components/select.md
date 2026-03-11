@@ -139,16 +139,21 @@ interface SelectOption<T = string> {
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--select-bg` | `var(--color-background)` | `var(--color-gray-900)` | トリガー背景 |
-| `--select-border` | `var(--color-border)` | `var(--color-gray-600)` | ボーダー |
-| `--select-dropdown-bg` | `var(--color-background)` | `var(--color-gray-800)` | ドロップダウン背景 |
-| `--select-dropdown-shadow` | `var(--shadow-lg)` | `var(--shadow-lg)` | ドロップダウンシャドウ |
-| `--select-option-hover` | `var(--color-muted)` | `var(--color-gray-700)` | 選択肢ホバー |
-| `--select-option-selected` | `var(--color-primary-50)` | `var(--color-primary-900)` | 選択済み背景 |
-| `--select-tag-bg` | `var(--color-muted)` | `var(--color-gray-700)` | Multi Tag背景 |
-| `--select-radius` | `var(--radius-md)` | same | 角丸 |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--select-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | トリガー背景 |
+| `--select-border` | `var(--color-border-default)` | Black/200 `#DADADD` | ボーダー |
+| `--select-border-focus` | `var(--color-border-emphasis)` | Brand/600 `#5538EE` | フォーカス時ボーダー |
+| `--select-dropdown-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | ドロップダウン背景 |
+| `--select-option-hover` | `var(--color-bg-interactive)` | Black/100 `#EFEEF0` | 選択肢ホバー |
+| `--select-option-selected` | `var(--color-bg-secondary)` | Brand/50 `#EDEFFF` | 選択済み背景 |
+| `--select-tag-bg` | `var(--color-bg-tertiary)` | Black/50 `#F7F7F8` | Multi Tag背景 |
+| `--select-text` | `var(--color-text-default)` | Black/950 `#27272A` | テキスト |
+| `--select-placeholder` | `var(--color-text-disabled)` | Black/400 `#94939D` | プレースホルダー |
+| `--select-icon` | `var(--color-icon-secondary)` | Black/500 `#777681` | 矢印アイコン |
+| `--select-radius` | `var(--radius-md)` | `12px` | 角丸 |
 
 ---
 

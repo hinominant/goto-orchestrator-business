@@ -156,15 +156,19 @@ interface RadioGroupProps {
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--checkbox-border` | `var(--color-border)` | `var(--color-gray-500)` | 未チェック時ボーダー |
-| `--checkbox-checked-bg` | `var(--color-primary)` | `var(--color-primary)` | チェック時背景 |
-| `--checkbox-checked-icon` | `var(--color-primary-foreground)` | same | ✓/●の色 |
-| `--checkbox-radius` | `var(--radius-sm)` | same | Checkbox角丸 |
-| `--radio-radius` | `var(--radius-full)` | same | Radio角丸（円形） |
-| `--checkbox-label-gap` | `var(--space-2)` | same | コントロール-ラベル間 |
-| `--checkbox-group-gap` | `var(--space-3)` | same | 選択肢間の余白 |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--checkbox-border` | `var(--color-border-default)` | Black/200 `#DADADD` | 未チェック時ボーダー |
+| `--checkbox-checked-bg` | `var(--color-bg-emphasis)` | Brand/600 `#5538EE` | チェック時背景 |
+| `--checkbox-checked-icon` | `var(--color-icon-inverse)` | Black/0 `#FFFFFF` | ✓/●の色 |
+| `--checkbox-label-text` | `var(--color-text-default)` | Black/950 `#27272A` | ラベルテキスト |
+| `--checkbox-disabled-bg` | `var(--color-bg-disabled)` | Black/200 `#DADADD` | 無効背景 |
+| `--checkbox-radius` | `var(--radius-sm)` | `8px` | Checkbox角丸 |
+| `--radio-radius` | `var(--radius-full)` | `9999px` | Radio角丸（円形） |
+| `--checkbox-label-gap` | `var(--space-sm)` | `8px` | コントロール-ラベル間 |
+| `--checkbox-group-gap` | `var(--space-md)` | `12px` | 選択肢間の余白 |
 
 ---
 

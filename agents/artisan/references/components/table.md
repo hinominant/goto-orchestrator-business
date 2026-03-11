@@ -146,16 +146,21 @@ interface ColumnDef<T> {
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--table-bg` | `var(--color-background)` | `var(--color-gray-900)` | テーブル背景 |
-| `--table-header-bg` | `var(--color-muted)` | `var(--color-gray-800)` | ヘッダー背景 |
-| `--table-border` | `var(--color-border)` | `var(--color-gray-700)` | 行ボーダー |
-| `--table-row-hover` | `var(--color-muted)` | `var(--color-gray-800)` | 行ホバー |
-| `--table-row-selected` | `var(--color-primary-50)` | `var(--color-primary-900)` | 選択行背景 |
-| `--table-row-stripe` | `var(--color-muted-50)` | `var(--color-gray-850)` | ゼブラストライプ |
-| `--table-sort-icon` | `var(--color-foreground)` | `var(--color-gray-200)` | ソートアイコン |
-| `--table-radius` | `var(--radius-lg)` | same | テーブル角丸 |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--table-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | テーブル背景 |
+| `--table-header-bg` | `var(--color-bg-tertiary)` | Black/50 `#F7F7F8` | ヘッダー背景 |
+| `--table-header-text` | `var(--color-text-secondary)` | Black/500 `#777681` | ヘッダーテキスト |
+| `--table-border` | `var(--color-border-divider)` | Black/100 `#EFEEF0` | 行ボーダー |
+| `--table-row-hover` | `var(--color-bg-interactive)` | Black/100 `#EFEEF0` | 行ホバー |
+| `--table-row-selected` | `var(--color-bg-secondary)` | Brand/50 `#EDEFFF` | 選択行背景 |
+| `--table-row-stripe` | `var(--color-bg-tertiary)` | Black/50 `#F7F7F8` | ゼブラストライプ |
+| `--table-text` | `var(--color-text-default)` | Black/950 `#27272A` | セルテキスト |
+| `--table-sort-icon` | `var(--color-icon-default)` | Black/950 `#27272A` | ソートアイコン |
+| `--table-sort-icon-inactive` | `var(--color-icon-disabled)` | Black/300 `#BAB9C0` | 非アクティブソート |
+| `--table-radius` | `var(--radius-lg)` | `16px` | テーブル角丸 |
 
 ---
 

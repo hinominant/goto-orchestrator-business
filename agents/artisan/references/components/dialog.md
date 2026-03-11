@@ -119,16 +119,19 @@ interface DialogProps {
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--dialog-bg` | `var(--color-background)` | `var(--color-gray-800)` | ダイアログ背景 |
-| `--dialog-border` | `var(--color-border)` | `var(--color-gray-700)` | ボーダー |
-| `--dialog-shadow` | `var(--shadow-xl)` | `var(--shadow-xl)` | ボックスシャドウ |
-| `--dialog-radius` | `var(--radius-lg)` | same | 角丸 |
-| `--dialog-backdrop` | `rgba(0, 0, 0, 0.5)` | `rgba(0, 0, 0, 0.7)` | Backdrop色 |
-| `--dialog-header-border` | `var(--color-border)` | `var(--color-gray-700)` | Header下線 |
-| `--dialog-footer-border` | `var(--color-border)` | `var(--color-gray-700)` | Footer上線 |
-| `--dialog-padding` | `var(--space-6)` | same | 内部パディング |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--dialog-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | ダイアログ背景 |
+| `--dialog-border` | `var(--color-border-default)` | Black/200 `#DADADD` | ボーダー |
+| `--dialog-radius` | `var(--radius-lg)` | `16px` | 角丸 |
+| `--dialog-backdrop` | `rgba(0, 0, 0, 0.5)` | — | Backdrop色 |
+| `--dialog-header-border` | `var(--color-border-divider)` | Black/100 `#EFEEF0` | Header下線 |
+| `--dialog-footer-border` | `var(--color-border-divider)` | Black/100 `#EFEEF0` | Footer上線 |
+| `--dialog-padding` | `var(--space-xl)` | `24px` | 内部パディング |
+| `--dialog-title-text` | `var(--color-text-default)` | Black/950 `#27272A` | タイトルテキスト |
+| `--dialog-body-text` | `var(--color-text-secondary)` | Black/500 `#777681` | 本文テキスト |
 
 ---
 

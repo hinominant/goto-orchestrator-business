@@ -117,18 +117,21 @@ interface InputProps {
 
 ## Design Tokens
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--input-bg` | `var(--color-background)` | `var(--color-gray-900)` | 背景色 |
-| `--input-border` | `var(--color-border)` | `var(--color-gray-600)` | ボーダー |
-| `--input-border-focus` | `var(--color-primary)` | `var(--color-primary)` | フォーカス時ボーダー |
-| `--input-border-error` | `var(--color-destructive)` | `var(--color-destructive)` | エラー時ボーダー |
-| `--input-text` | `var(--color-foreground)` | `var(--color-gray-50)` | 入力テキスト |
-| `--input-placeholder` | `var(--color-muted-foreground)` | `var(--color-gray-400)` | プレースホルダー |
-| `--input-label` | `var(--color-foreground)` | `var(--color-gray-100)` | ラベル |
-| `--input-helper` | `var(--color-muted-foreground)` | `var(--color-gray-400)` | ヘルパーテキスト |
-| `--input-error` | `var(--color-destructive)` | `var(--color-destructive)` | エラーメッセージ |
-| `--input-radius` | `var(--radius-md)` | same | 角丸 |
+> See: [`design-tokens.md`](../design-tokens.md) for full token definitions
+
+| Token | DS v3 Reference | Resolved Value | Usage |
+|-------|----------------|----------------|-------|
+| `--input-bg` | `var(--color-bg-default)` | Black/0 `#FFFFFF` | 背景色 |
+| `--input-border` | `var(--color-border-default)` | Black/200 `#DADADD` | ボーダー |
+| `--input-border-focus` | `var(--color-border-emphasis)` | Brand/600 `#5538EE` | フォーカス時ボーダー |
+| `--input-border-error` | `var(--color-border-critical)` | Red/600 `#FF001F` | エラー時ボーダー |
+| `--input-text` | `var(--color-text-default)` | Black/950 `#27272A` | 入力テキスト |
+| `--input-placeholder` | `var(--color-text-disabled)` | Black/400 `#94939D` | プレースホルダー |
+| `--input-label` | `var(--color-text-default)` | Black/950 `#27272A` | ラベル |
+| `--input-helper` | `var(--color-text-secondary)` | Black/500 `#777681` | ヘルパーテキスト |
+| `--input-error` | `var(--color-text-critical)` | Red/700 `#D7001A` | エラーメッセージ |
+| `--input-disabled-bg` | `var(--color-bg-disabled)` | Black/200 `#DADADD` | 無効背景 |
+| `--input-radius` | `var(--radius-md)` | `12px` | 角丸 |
 
 ---
 
