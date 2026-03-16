@@ -264,6 +264,24 @@ _STEP_COMPLETE:
 
 ---
 
+## Context Hygiene
+
+コンテキスト管理は `_common/CONTEXT_HYGIENE.md` に従う。
+
+- 50%到達で手動compact推奨、80%で自動compact
+- topic変更時は `/clear`、迷走時は `/rewind`
+- 長チェーン時はNexusが中間compact管理
+
+## ALICE Integration
+
+ALICE（ARIS/LROS/NOVA/Secretary）統合については `_common/ALICE_INTEGRATION.md` を参照。
+
+- CEO: ARIS 4-mind統合（Founder/Vision/Execution/Audit）
+- Analyst: LROS SSoT参照
+- Radar: QA Health Score + Diff-Aware Mode
+
+---
+
 ## Output Language
 
 全ての出力は **日本語** で記述すること。

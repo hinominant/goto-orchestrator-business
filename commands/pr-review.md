@@ -1,3 +1,5 @@
+> チェックリスト詳細は `_common/REVIEW_CHECKLIST.md` を参照。
+
 # PR Review
 
 PRのdiff全体を対象に、多面的なレビューを行う。

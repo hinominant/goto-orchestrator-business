@@ -1,0 +1,141 @@
+---
+name: {{AGENT_NAME}}
+description: {{AGENT_DESCRIPTION}}
+model: {{MODEL: opus | sonnet | haiku}}
+permissionMode: {{PERMISSION: full | read-only | plan-only | bypassPermissions}}
+maxTurns: {{MAX_TURNS: 1-50}}
+memory: {{MEMORY: session | project | global}}
+# Optional fields:
+# cognitiveMode: {{COGNITIVE_MODE}}
+# aliceRole: {{ALICE_ROLE}}
+# isolation: worktree
+# skills: []
+# tools: []
+# disallowedTools: []
+# hooks: {}
+# background: false
+---
+
+<!--
+CAPABILITIES_SUMMARY:
+- {{capability_1}}
+- {{capability_2}}
+
+COLLABORATION_PATTERNS:
+- Input: [{{input_pattern}}]
+- Output: [{{output_pattern}}]
+
+PROJECT_AFFINITY: {{affinities}}
+-->
+
+# {{AGENT_NAME}}
+
+> **"{{AGENT_MOTTO}}"**
+
+{{AGENT_INTRODUCTION}}
+
+---
+
+## Philosophy
+
+{{AGENT_PHILOSOPHY}}
+
+---
+
+## Cognitive Constraints
+
+### MUST Think About
+- {{constraint_1}}
+
+### MUST NOT Think About
+- {{constraint_1}}
+
+---
+
+## Process
+
+1. **{{Step1}}** - {{description}}
+2. **{{Step2}}** - {{description}}
+3. **{{Step3}}** - {{description}}
+4. **{{Step4}}** - {{description}}
+
+---
+
+## Boundaries
+
+**Always:**
+1. {{always_rule_1}}
+
+**Ask first:**
+1. {{ask_first_rule_1}}
+
+**Never:**
+1. {{never_rule_1}}
+
+---
+
+## INTERACTION_TRIGGERS
+
+| Trigger | Timing | When to Ask |
+|---------|--------|-------------|
+| {{TRIGGER}} | {{TIMING}} | {{CONDITION}} |
+
+---
+
+## AUTORUN Support
+
+When invoked in Nexus AUTORUN mode:
+
+### Input (_AGENT_CONTEXT)
+```yaml
+_AGENT_CONTEXT:
+  Role: {{AGENT_NAME}}
+  Task: [Task description]
+  Mode: AUTORUN
+```
+
+### Output (_STEP_COMPLETE)
+```yaml
+_STEP_COMPLETE:
+  Agent: {{AGENT_NAME}}
+  Status: SUCCESS | PARTIAL | BLOCKED
+  Output: [Results]
+  Next: [NextAgent] | VERIFY | DONE
+```
+
+---
+
+## Nexus Hub Mode
+
+When `## NEXUS_ROUTING` is present, return via `## NEXUS_HANDOFF`:
+
+```text
+## NEXUS_HANDOFF
+- Step: [X/Y]
+- Agent: {{AGENT_NAME}}
+- Summary: [Summary]
+- Key findings: [Findings]
+- Artifacts: [Artifacts]
+- Risks: [Risks]
+- Suggested next agent: [Agent]
+- Next action: CONTINUE | VERIFY | DONE
+```
+
+---
+
+## Activity Logging (REQUIRED)
+
+After completing work, add to `.agents/PROJECT.md` Activity Log:
+```
+| YYYY-MM-DD | {{AGENT_NAME}} | ({{category}}) | ({{scope}}) | ({{outcome}}) |
+```
+
+---
+
+## Output Language
+
+All final outputs must be written in Japanese.
+
+## Git Commit & PR Guidelines
+
+Follow `_common/GIT_GUIDELINES.md`.

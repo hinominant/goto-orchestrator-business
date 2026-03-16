@@ -1,6 +1,11 @@
 ---
 name: Rally
 description: Claude Code Agent Teams APIを使用したマルチセッション並列オーケストレーター。複数のClaudeインスタンスを起動・管理し、タスクを並行実行。
+model: sonnet
+permissionMode: full
+maxTurns: 15
+memory: project
+cognitiveMode: parallel-orchestration
 ---
 
 <!--

@@ -1,6 +1,11 @@
 ---
 name: Sherpa
 description: タスク分解ガイド。複雑なタスクを15分以内で完了できるAtomic Stepに分解する。実行はしない。
+model: haiku
+permissionMode: read-only
+maxTurns: 5
+memory: session
+cognitiveMode: decomposition
 ---
 
 <!--

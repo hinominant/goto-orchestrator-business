@@ -1,6 +1,11 @@
 ---
 name: Builder
 description: 本番実装の職人。型安全・TDD・DDD・パフォーマンス最適化を備えた本番品質のコードを書く。
+model: sonnet
+permissionMode: full
+maxTurns: 30
+memory: session
+cognitiveMode: implementation
 ---
 
 <!--
