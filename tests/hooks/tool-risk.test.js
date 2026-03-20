@@ -90,11 +90,11 @@ describe('Safety Gate — BLOCK', () => {
       const out = runHook(bashInput('rm -rf/'));
       assert.equal(out.decision, 'block');
     });
-    it('does NOT block rm -rf ./tmp (relative path — no absolute target)', () => {
-      // フックは絶対パス(/始まり)または ~(home) を持つ rm をBLOCK。
-      // 相対パスは対象外（BLOCK ではなく HIGH に落ちる）
+    // ビジネス版: rm -rf は対象を問わず全て BLOCK（エンジニア版は / と ~ のみ BLOCK）
+    it('BLOCKS rm -rf ./tmp (business: all rm -rf BLOCK, not just root/home)', () => {
       const out = runHook(bashInput('rm -rf ./tmp/my-test-dir'));
-      assert.notEqual(out.decision, 'block', 'rm of relative path should not be BLOCK (may still be HIGH)');
+      assert.equal(out.decision, 'block', 'business version blocks ALL rm -rf regardless of target');
+      assert.match(out.reason, /削除|取り消し/);
     });
   });
 
@@ -435,39 +435,39 @@ describe('Safety Gate — BLOCK', () => {
 
 describe('HIGH risk patterns', () => {
 
-  it('flags npx -y (supply chain risk)', () => {
+  // ビジネス版: npx -y は BLOCK（エンジニア版は HIGH）
+  it('BLOCKS npx -y (business: supply chain risk — BLOCK not HIGH)', () => {
     const out = runHook(bashInput('npx -y some-dangerous-package'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /slopsquatting|外部パッケージ/);
   });
 
-  it('flags claude mcp add', () => {
+  // ビジネス版: claude mcp add は BLOCK（エンジニア版は HIGH）
+  it('BLOCKS claude mcp add (business: MCP takeover risk — BLOCK not HIGH)', () => {
     const out = runHook(bashInput('claude mcp add my-server'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /MCP|CVE/);
   });
 
-  // CRIT-3 回帰テスト
-  it('flags git add -A (CRIT-3 regression)', () => {
+  // ビジネス版: git add -A は BLOCK（エンジニア版は HIGH）— CRIT-3 回帰
+  it('BLOCKS git add -A (business: BLOCK not HIGH — CRIT-3 regression)', () => {
     const out = runHook(bashInput('git add -A'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /\.env|ステージング/);
   });
 
-  it('flags git add . (bulk staging)', () => {
+  // ビジネス版: git add . は BLOCK（エンジニア版は HIGH）
+  it('BLOCKS git add . (business: BLOCK not HIGH)', () => {
     const out = runHook(bashInput('git add .'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
   });
 
-  // MED-5 回帰テスト: --force-with-lease は HIGH にしない（MEDIUM の git push として扱う）
-  it('does NOT flag git push --force-with-lease as HIGH (MED-5 regression)', () => {
+  // MED-5 回帰テスト: --force-with-lease はビジネス版でも BLOCK しない
+  // ビジネス版では git push 全体が HIGH なので --force-with-lease も HIGH になるが BLOCK は絶対NG
+  it('does NOT BLOCK git push --force-with-lease (MED-5 regression — business: HIGH but not BLOCK)', () => {
     const out = runHook(bashInput('git push --force-with-lease origin feature/my-branch'));
-    // --force-with-lease は安全な代替手段。HIGH ではなく MEDIUM（通常の git push）として扱う
-    if (out.decision === 'ask_user') {
-      assert.match(out.reason, /MEDIUM/, '--force-with-lease must be MEDIUM at most, never HIGH');
-    }
-    // BLOCK は絶対NG
+    // ビジネス版: 全 git push が HIGH → force-with-lease も HIGH になる（MEDIUM ではなくなる）
+    // 重要なのは BLOCK でないこと
     assert.notEqual(out.decision, 'block', 'force-with-lease must never be BLOCK');
   });
 
@@ -483,22 +483,24 @@ describe('HIGH risk patterns', () => {
     assert.match(out.reason, /HIGH/);
   });
 
-  it('flags git reset --hard', () => {
+  // ビジネス版: git reset --hard は BLOCK（エンジニア版は HIGH）
+  it('BLOCKS git reset --hard (business: BLOCK not HIGH)', () => {
     const out = runHook(bashInput('git reset --hard HEAD~1'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /取り消し不可|消え/);
   });
 
-  it('flags docker system prune (MED-2 regression)', () => {
+  // ビジネス版: docker system prune は BLOCK（エンジニア版は HIGH）— MED-2 回帰
+  it('BLOCKS docker system prune (business: BLOCK not HIGH — MED-2 regression)', () => {
     const out = runHook(bashInput('docker system prune -f'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /Docker|削除/);
   });
 
-  it('flags docker volume prune', () => {
+  // ビジネス版: docker volume prune は BLOCK（エンジニア版は HIGH）
+  it('BLOCKS docker volume prune (business: BLOCK not HIGH)', () => {
     const out = runHook(bashInput('docker volume prune'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
   });
 
   it('flags kill -9', () => {
@@ -565,16 +567,19 @@ describe('HIGH risk patterns', () => {
 
 describe('MEDIUM risk patterns', () => {
 
-  it('flags git push (normal push)', () => {
+  // ビジネス版: git push は HIGH（エンジニア版は MEDIUM）
+  it('flags git push as HIGH (business: upgraded from MEDIUM)', () => {
     const out = runHook(bashInput('git push origin feature/my-branch'));
     assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /MEDIUM/);
+    assert.match(out.reason, /HIGH/);
+    assert.match(out.reason, /push|リモート/);
   });
 
-  it('flags git commit', () => {
+  // ビジネス版: git commit は HIGH（エンジニア版は MEDIUM）
+  it('flags git commit as HIGH (business: upgraded from MEDIUM)', () => {
     const out = runHook(bashInput('git commit -m "fix: update config"'));
     assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /MEDIUM/);
+    assert.match(out.reason, /HIGH/);
   });
 
   it('flags npm publish', () => {
@@ -583,10 +588,11 @@ describe('MEDIUM risk patterns', () => {
     assert.match(out.reason, /MEDIUM/);
   });
 
-  it('flags pip install', () => {
+  // ビジネス版: pip install は HIGH（エンジニア版は MEDIUM）
+  it('flags pip install as HIGH (business: upgraded from MEDIUM)', () => {
     const out = runHook(bashInput('pip install requests'));
     assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /MEDIUM/);
+    assert.match(out.reason, /HIGH/);
   });
 
   it('flags Write tool', () => {
@@ -993,28 +999,24 @@ describe('Business BLOCK messages — ビジネス向けメッセージ確認', 
     assert.match(out.reason, /次のステップ/);
   });
 
-  it('HIGH message contains 要確認 prefix', () => {
+  // ビジネス版: git add -A は BLOCK になったため BLOCK メッセージを確認
+  it('BLOCK message for git add -A mentions .envファイル', () => {
     const out = runHook(bashInput('git add -A'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /HIGH/);
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /\.env|ステージング/);
+    assert.match(out.reason, /次のステップ/);
   });
 
-  it('HIGH message for git add -A mentions .envファイル', () => {
-    const out = runHook(bashInput('git add -A'));
-    assert.equal(out.decision, 'ask_user');
-    assert.match(out.reason, /\.env/);
-  });
-
-  it('HIGH message for DROP TABLE mentions バックアップ', () => {
+  it('BLOCK message for DROP TABLE mentions なぜ危険か', () => {
     const out = runHook(bashInput('DROP TABLE users'));
-    // DROP TABLE is BLOCK due to Safety Gate
     assert.equal(out.decision, 'block');
     assert.match(out.reason, /なぜ危険か/);
   });
 
-  it('HIGH message for npx -y mentions slopsquatting', () => {
+  // ビジネス版: npx -y は BLOCK になったため BLOCK メッセージを確認
+  it('BLOCK message for npx -y mentions slopsquatting', () => {
     const out = runHook(bashInput('npx -y some-package'));
-    assert.equal(out.decision, 'ask_user');
+    assert.equal(out.decision, 'block');
     assert.match(out.reason, /slopsquatting/);
   });
 

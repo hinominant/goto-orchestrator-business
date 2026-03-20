@@ -120,7 +120,11 @@
       "Read(data/production/**)",
       "Read(data/prod/**)",
       "Read(**/*_backup.sql)",
-      "Read(**/*.dump)"
+      "Read(**/*.dump)",
+      "Write(.claude/hooks/*)",
+      "Edit(.claude/hooks/*)",
+      "Write(_templates/hooks/*)",
+      "Edit(_templates/hooks/*)"
     ]
   },
   "hooks": {

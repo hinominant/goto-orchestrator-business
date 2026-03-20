@@ -242,6 +242,89 @@ const SAFETY_GATE_PATTERNS = [
     ),
   },
 
+  // ===== ビジネス版: HIGH→BLOCK 格上げパターン =====
+  // エンジニア版では ask_user（HIGH）だが、ビジネスユーザーは判断材料がないため BLOCK にする
+
+  {
+    // git add 一括ステージング — .envや個人情報ファイルが含まれるか判断できない
+    test: (cmd) =>
+      /git\s+add\s+(-A|--all)\b/.test(cmd) ||
+      /git\s+add\s+\.\s*$/.test(cmd) ||
+      /git\s+add\s+\*\s*$/.test(cmd),
+    reason: blockMsg(
+      '全ファイルの一括Gitステージング（要エンジニア確認）',
+      '全ての変更ファイルをGitに登録しようとしています。',
+      '.envファイルや顧客データが誤って含まれると、GitHubで全世界に公開されます（2024年: 3900万件漏洩）。含まれているかを判断するには技術的知識が必要です。',
+      '① エンジニアに「どのファイルをコミットすべきか」確認する ② ファイルを個別に指定してもらう（例: git add src/app.js）'
+    ),
+  },
+  {
+    // git reset --hard — 何が消えるか判断できない
+    test: (cmd) => /git\s+reset\s+--hard/.test(cmd),
+    reason: blockMsg(
+      'Git変更の強制リセット（取り消し不可）',
+      '未コミットの全変更が永久に消えます。',
+      '「何が消えるか」を判断するには変更内容の把握が必要です。誤承認すると作業が完全に失われます。',
+      'エンジニアに相談してください。作業を一時保存したい場合は「git stash」を使うよう依頼してください。'
+    ),
+  },
+  {
+    // npx -y — パッケージの安全性を評価できない
+    test: (cmd) => /npx\s+(-y|--yes)\s+/.test(cmd),
+    reason: blockMsg(
+      '外部パッケージの無検証自動実行',
+      'セキュリティ確認なしで外部プログラムをダウンロード・実行します。',
+      'AIがパッケージ名を1文字間違えると偽物のマルウェアが実行されます（slopsquatting攻撃）。安全性の評価には技術的知識が必要です。',
+      '/external-install-check を先に実行してください。またはエンジニアに確認を依頼してください。'
+    ),
+  },
+  {
+    // npm install -g — グローバルインストールのリスクを評価できない
+    test: (cmd) => /npm\s+install\s+-g\b/.test(cmd),
+    reason: blockMsg(
+      'グローバルパッケージのインストール',
+      'コンピューター全体に影響するプログラムをインストールします。',
+      'グローバルインストールされたマルウェアは全プロジェクトに影響します。安全性の評価には技術的知識が必要です。',
+      'エンジニアに確認してからインストールしてください。'
+    ),
+  },
+  {
+    // docker system/volume prune + docker rm/rmi -f — 影響範囲を把握できない
+    test: (cmd) =>
+      /docker\s+(?:system|volume|network|container|image)\s+prune/.test(cmd) ||
+      /docker\s+(?:rm|rmi)\s+-f/.test(cmd),
+    reason: blockMsg(
+      'Docker環境の一括削除（取り消し不可）',
+      'Dockerコンテナ・イメージ・ボリュームが削除されます（元に戻せません）。',
+      '開発環境の再構築に時間がかかります。本番稼働中のコンテナが含まれる可能性もあります。',
+      'エンジニアに確認してから実行してください。'
+    ),
+  },
+  {
+    // claude mcp add — MCPサーバーの安全性を評価できない
+    test: (cmd) => /claude\s+mcp\s+add\b/.test(cmd),
+    reason: blockMsg(
+      '外部MCPサーバーの追加（攻撃リスク）',
+      'AIの拡張機能（MCPサーバー）を追加しようとしています。',
+      '悪意あるMCPサーバーはAIの全ての操作を乗っ取れます（CVE-2025-59536）。安全性の評価には専門知識が必要です。',
+      '/external-install-check を先に実行してください。またはエンジニアに確認を依頼してください。'
+    ),
+  },
+  {
+    // rm -rf 任意のターゲット — ビジネス版は全て BLOCK（エンジニア版は / と ~ のみ BLOCK）
+    // ビジネスユーザーは削除対象の重要度を判断できないため、対象を問わず全てブロック
+    test: (cmd) => {
+      if (!/\brm\b/.test(cmd)) return false;
+      return /(?:-[a-zA-Z]*[rf]|--force|--recursive)/i.test(cmd);
+    },
+    reason: blockMsg(
+      'ファイル・フォルダの強制削除',
+      '指定したファイルまたはフォルダが削除されます（ゴミ箱には入りません）。',
+      '削除後は元に戻せません。削除対象に重要なファイルが含まれているかを判断するには内容の把握が必要です。',
+      '削除するファイルをエンジニアに確認してから実行してください。'
+    ),
+  },
+
   // ===== ビジネス向け追加パターン =====
 
   {
@@ -283,26 +366,20 @@ const SAFETY_GATE_PATTERNS = [
 // === Risk Classification Patterns ===
 
 const HIGH_RISK_PATTERNS = [
-  // 外部コンテンツの無検証インストール（サプライチェーン攻撃）
-  /npx\s+(-y|--yes)\s+/,
-  /claude\s+mcp\s+add\b/,
-  // CRIT-3: bulk git staging — may silently include .env files
-  /git\s+add\s+(-A|--all)\b/,
-  /git\s+add\s+\.\s*$/,
-  /git\s+add\s+\*\s*$/,
-  /rm\s+.*(-[a-zA-Z]*f|-[a-zA-Z]*r|--force|--recursive)/,
+  // ビジネス版: git push（全て）/ git commit / pip install を HIGH に格上げ（エンジニア版は MEDIUM）
+  // ビジネスユーザーが「何を push/commit しているか」を確認する習慣をつけるための確認ダイアログ
+  /git\s+push/,
+  /git\s+commit/,
+  /pip\s+install/,
   // MED-5 fix: --force-with-lease is safe, only flag plain --force
+  // NOTE: force push to main/master/develop/release/* は Safety Gate で BLOCK 済み
   /git\s+push\s+.*--force(?!-with-lease)/,
   /git\s+push\s+.*-f\b/,
-  /git\s+reset\s+--hard/,
   /git\s+clean\s+-[a-zA-Z]*f/,
   /git\s+branch\s+-D/,
   /DROP\s+(TABLE|DATABASE|INDEX)/i,
   /DELETE\s+FROM/i,
   /TRUNCATE\s+TABLE/i,
-  /docker\s+(rm|rmi)\s+-f/,
-  // MED-2: docker system/volume prune — irreversible
-  /docker\s+(?:system|volume|network|container)\s+prune/,
   /kill\s+-9/,
   // MED-4 fix: catch chmod a+rwx and 0777 in addition to 777
   /chmod\s+(?:0*777|a[+]rwx|ugo[+]rwx)/,
@@ -323,15 +400,14 @@ const HIGH_RISK_PATTERNS = [
 ];
 
 const MEDIUM_RISK_PATTERNS = [
-  /git\s+push/,
-  /git\s+commit/,
+  // git push / git commit / pip install は HIGH に格上げ済み（上記 HIGH_RISK_PATTERNS 参照）
+  // npm install -g は Safety Gate で BLOCK 済み
   /git\s+merge/,
   /git\s+rebase/,
   /git\s+checkout\s+\./,
   /git\s+restore\s+\./,
   /npm\s+publish/,
-  /npm\s+install\s+-g/,
-  /pip\s+install/,
+  /npm\s+install(?!\s+-g)/,  // -g は BLOCK済み。通常インストールは MEDIUM
   /docker\s+(build|run|compose)/,
   /curl\s+.*-X\s*(POST|PUT|DELETE|PATCH)/i,
   /ssh\s/,
@@ -350,6 +426,28 @@ const LOW_TOOL_NAMES = new Set([
  * HIGH リスクパターンに対してビジネスフレンドリーなメッセージを返す
  */
 function getHighRiskMessage(cmd) {
+  // ビジネス版 HIGH 格上げパターン（エンジニア版は MEDIUM）
+  if (/git\s+push/.test(cmd))
+    return highMsg(
+      'Gitリモートへの送信（push）',
+      'コードをリモートリポジトリ（GitHub等）に送信します。',
+      '送信後はチームメンバー全員に影響します。間違ったブランチへの送信や、意図しないファイルの公開が起きる可能性があります。',
+      '① どのブランチに送るか確認 ② git status でコミット内容を確認 ③ 問題なければ続行'
+    );
+  if (/git\s+commit/.test(cmd))
+    return highMsg(
+      'Gitコミット（変更の記録）',
+      '変更内容をGitの履歴に記録します。',
+      'コミット内容に機密情報（APIキー・個人情報等）が含まれていると、後から完全に除去するのが困難になります。',
+      '① git status でどのファイルがステージングされているか確認 ② 問題なければ続行'
+    );
+  if (/pip\s+install/.test(cmd))
+    return highMsg(
+      '外部Pythonパッケージのインストール',
+      '外部からPythonパッケージをダウンロード・インストールします。',
+      'パッケージ名の偽装（slopsquatting）でマルウェアがインストールされる可能性があります。AIが提案したパッケージ名が本物かどうか確認が必要です。',
+      '/external-install-check で安全性を確認するか、公式ドキュメントで正式なパッケージ名を確認してください。'
+    );
   if (/git\s+add\s+(-A|--all)|git\s+add\s+\.\s*$|git\s+add\s+\*\s*$/.test(cmd))
     return highMsg(
       '全ファイルのステージング',
