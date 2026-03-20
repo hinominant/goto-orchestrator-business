@@ -274,6 +274,20 @@ curl -sL https://raw.githubusercontent.com/hinominant/goto-orchestrator/main/ins
 11. **Simplicity first** - 最小影響コードを強制。過剰設計より3行の重複を許容する
 12. **Root cause only** - 一時的修正禁止。根本原因を見つけて直す
 
+## 必須ワークフロー（省略禁止）
+
+### 新機能追加・パターン追加・スクリプト変更時
+
+**必ず `/implement` スキルを先に実行すること。**
+- テスト先書き（RED→GREEN）、ドキュメント同時更新、auto-repair.js 更新を強制する
+- 宣言なしに実装を開始した場合 → `/log-failure` 自動記録
+
+### 実装完了 → push 前
+
+**必ず `/quality-gate` スキルを実行すること。**
+3フェーズ検証（標準テスト×2 → 視点違いテスト×2 → 外部監査×1）を経てコミットする。
+手動 `git commit` / `git push` は禁止。スキル経由必須。
+
 ## Contributing
 
 ### エージェント追加
