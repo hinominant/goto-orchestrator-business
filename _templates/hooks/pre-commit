@@ -2,7 +2,7 @@
 # pre-commit hook — Goto Orchestrator 品質ゲート
 # このフックは git commit の直前に自動実行される。
 # テストが通らない限り、コミットは物理的にブロックされる。
-# git commit --no-verify は settings.json の deny リストで禁止済み。
+# git commit --no-verify は settings.json の deny リストで禁止済み（Bash(git commit --no-verify*)）。
 
 set -euo pipefail
 

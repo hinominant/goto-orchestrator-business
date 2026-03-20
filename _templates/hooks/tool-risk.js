@@ -134,9 +134,10 @@ const SAFETY_GATE_PATTERNS = [
   },
   {
     // python3/node 経由のネットワーク通信・環境変数漏洩バイパス
+    // AUDIT-FIX: python3 --command 長形式、node --eval/-p も検知
     test: (cmd) =>
-      /python3?\s+-c\s+['"].*(?:urllib|requests|http|socket|subprocess|os\.environ|os\.getenv)/.test(cmd) ||
-      /node\s+-e\s+['"].*(?:https?|fetch|axios|net\.Socket|child_process|require\(\s*['"]net['"]\s*\)|net\.connect|process\.env)/.test(cmd),
+      /python3?\s+(?:-c|--command)\s+['"].*(?:urllib|requests|http|socket|subprocess|os\.environ|os\.getenv)/.test(cmd) ||
+      /node\s+(?:-e|--eval|-p)\s+['"].*(?:https?|fetch|axios|net\.Socket|child_process|require\(\s*['"]net['"]\s*\)|net\.connect|process\.env)/.test(cmd),
     reason: blockMsg(
       'プログラム経由の外部通信・環境変数アクセス',
       'Python/node.jsのインラインコードを使って外部サーバーへの通信が試みられています。',
@@ -171,9 +172,11 @@ const SAFETY_GATE_PATTERNS = [
   },
   {
     // eval 経由のリモートコード実行
+    // AUDIT-FIX: バックティック形式 eval `curl ...` も検知
     test: (cmd) =>
       /eval\s+["'`]?\$\((?:curl|wget)/.test(cmd) ||
-      /eval\s+["'][^'"]*(?:curl|wget)/.test(cmd),
+      /eval\s+["'][^'"]*(?:curl|wget)/.test(cmd) ||
+      /eval\s+`[^`]*(?:curl|wget)/i.test(cmd),
     reason: blockMsg(
       '外部スクリプトの自動実行（サプライチェーン攻撃リスク）',
       'インターネットからダウンロードしたプログラムを検査せずにそのまま実行しようとしています。',
@@ -232,8 +235,9 @@ const SAFETY_GATE_PATTERNS = [
   },
   {
     // .envファイルへの代替読み取りツールによる回避防止（BYPASS-5）
+    // AUDIT-FIX: grep/awk/sed/vi/vim/nano/nl/wc/diff も追加
     test: (cmd) =>
-      /\b(?:head|tail|tac|less|more|sort)\s+[^\n|;&`]*\.env\b/i.test(cmd),
+      /\b(?:head|tail|tac|less|more|sort|grep|awk|sed|vi|vim|nano|nl|wc|diff)\s+[^\n|;&`]*\.env\b/i.test(cmd),
     reason: blockMsg(
       'シークレットファイルの読み取り試行',
       'シークレットファイル（.env）の内容を読み取ります。',
@@ -247,9 +251,11 @@ const SAFETY_GATE_PATTERNS = [
 
   {
     // git add 一括ステージング — .envや個人情報ファイルが含まれるか判断できない
+    // AUDIT-FIX: -u/--update（追跡済みファイル一括）、. --force（.gitignore済みファイルも含む）、./ も追加
     test: (cmd) =>
       /git\s+add\s+(-A|--all)\b/.test(cmd) ||
-      /git\s+add\s+\.\s*$/.test(cmd) ||
+      /git\s+add\s+(-u|--update)\b/.test(cmd) ||
+      /git\s+add\s+\.(?:[\/\s]|$)/.test(cmd) ||
       /git\s+add\s+\*\s*$/.test(cmd),
     reason: blockMsg(
       '全ファイルの一括Gitステージング（要エンジニア確認）',
@@ -270,7 +276,8 @@ const SAFETY_GATE_PATTERNS = [
   },
   {
     // npx -y — パッケージの安全性を評価できない
-    test: (cmd) => /npx\s+(-y|--yes)\s+/.test(cmd),
+    // AUDIT-FIX: フラグ後置（npx pkg -y）、大文字NPX も検知
+    test: (cmd) => /npx\s+.+\s(-y|--yes)\b/i.test(cmd) || /npx\s+(-y|--yes)\s+/i.test(cmd),
     reason: blockMsg(
       '外部パッケージの無検証自動実行',
       'セキュリティ確認なしで外部プログラムをダウンロード・実行します。',
@@ -280,7 +287,8 @@ const SAFETY_GATE_PATTERNS = [
   },
   {
     // npm install -g — グローバルインストールのリスクを評価できない
-    test: (cmd) => /npm\s+install\s+-g\b/.test(cmd),
+    // AUDIT-FIX: `npm i -g` 略語、`npm install --global` 長形式も検知
+    test: (cmd) => /npm\s+(?:install|i)\s+(?:.*\s+)?(?:-g|--global)\b/.test(cmd),
     reason: blockMsg(
       'グローバルパッケージのインストール',
       'コンピューター全体に影響するプログラムをインストールします。',
@@ -290,8 +298,10 @@ const SAFETY_GATE_PATTERNS = [
   },
   {
     // docker system/volume prune + docker rm/rmi -f — 影響範囲を把握できない
+    // AUDIT-FIX: `docker prune`（素のサブコマンドなし形式）も追加
     test: (cmd) =>
       /docker\s+(?:system|volume|network|container|image)\s+prune/.test(cmd) ||
+      /docker\s+prune\b/.test(cmd) ||
       /docker\s+(?:rm|rmi)\s+-f/.test(cmd),
     reason: blockMsg(
       'Docker環境の一括削除（取り消し不可）',
@@ -329,9 +339,10 @@ const SAFETY_GATE_PATTERNS = [
 
   {
     // 顧客・個人情報ファイルへのアクセス・コミット試み
+    // AUDIT-FIX: ひらがな表記（こきゃく・かいいん等）、.json拡張子も追加
     test: (cmd) =>
-      /(?:cat|head|tail|less|more|grep|awk|sed)\s+[^\n|;&`]*(?:顧客|名簿|個人情報|会員|customer|members?|applicants?|candidates?)[^\n|;&`]*\.(?:csv|xlsx?|tsv)\b/i.test(cmd) ||
-      /git\s+add\s+[^\n|;&`]*(?:顧客|名簿|個人情報|customer|members?)[^\n|;&`]*\.(?:csv|xlsx?)/i.test(cmd),
+      /(?:cat|head|tail|less|more|grep|awk|sed)\s+[^\n|;&`]*(?:顧客|こきゃく|名簿|めいぼ|個人情報|こじんじょうほう|会員|かいいん|customer|members?|applicants?|candidates?)[^\n|;&`]*\.(?:csv|xlsx?|tsv|json)\b/i.test(cmd) ||
+      /git\s+add\s+[^\n|;&`]*(?:顧客|こきゃく|名簿|個人情報|customer|members?)[^\n|;&`]*\.(?:csv|xlsx?|json)/i.test(cmd),
     reason: blockMsg(
       '個人情報ファイルへのアクセス',
       '顧客・会員・個人情報を含む可能性のあるファイルをAIに入力しようとしています。',
