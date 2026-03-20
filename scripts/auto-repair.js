@@ -111,10 +111,10 @@ function checkToolRisk() {
       }
     }
 
-    // DATA_PROTECTION_REMINDER injection on LOW tools
+    // DATA_PROTECTION_REMINDER injection on LOW tools（ビジネス版: 「データ保護」）
     const low = run({ tool_name: 'Read', tool_input: { file_path: 'src/index.ts' } });
-    if (!low.additionalContext || !low.additionalContext.includes('DATA GUARD')) {
-      return { ok: false, reason: 'Read tool should inject DATA_PROTECTION_REMINDER in additionalContext' };
+    if (!low.additionalContext || !low.additionalContext.includes('データ保護')) {
+      return { ok: false, reason: 'Read tool should inject DATA_PROTECTION_REMINDER (データ保護) in additionalContext' };
     }
   } catch (e) {
     return { ok: false, reason: e.message };

@@ -662,31 +662,31 @@ describe('LOW risk — silent approve', () => {
 });
 
 // ============================================================
-// additionalContext の注入確認（DATA GUARD）
+// additionalContext の注入確認（ビジネス版: DATA GUARD → データ保護）
 // ============================================================
 
 describe('DATA PROTECTION additionalContext injection', () => {
 
-  it('injects DATA GUARD reminder on LOW operations', () => {
+  it('injects データ保護 reminder on LOW operations', () => {
     const out = runHook({ tool_name: 'Read', tool_input: { file_path: 'src/index.js' } });
     assert.equal(out.decision, 'approve');
     assert.ok(out.additionalContext, 'additionalContext should be present');
-    assert.match(out.additionalContext, /DATA GUARD/);
+    assert.match(out.additionalContext, /データ保護/);
     assert.match(out.additionalContext, /入力禁止/);
   });
 
-  it('injects DATA GUARD reminder on MEDIUM operations', () => {
+  it('injects データ保護 reminder on MEDIUM operations', () => {
     const out = runHook(bashInput('git commit -m "test"'));
     assert.equal(out.decision, 'ask_user');
     assert.ok(out.additionalContext, 'additionalContext should be present on MEDIUM');
-    assert.match(out.additionalContext, /DATA GUARD/);
+    assert.match(out.additionalContext, /データ保護/);
   });
 
-  it('injects DATA GUARD reminder on HIGH operations', () => {
+  it('injects データ保護 reminder on HIGH operations', () => {
     const out = runHook(bashInput('git push --force origin feature'));
     assert.equal(out.decision, 'ask_user');
     assert.ok(out.additionalContext, 'additionalContext should be present on HIGH');
-    assert.match(out.additionalContext, /DATA GUARD/);
+    assert.match(out.additionalContext, /データ保護/);
   });
 
   it('does NOT include DATA GUARD on BLOCK (decision discarded)', () => {
@@ -873,6 +873,149 @@ describe('curl -b false positive fix — MED-1 regression', () => {
     // --data will be caught by auth credentials pattern if it contains secret keywords
     // or by HIGH curl -d pattern
     assert.notEqual(out.decision, 'approve', 'curl --data should be at least MEDIUM');
+  });
+
+});
+
+// ============================================================
+// ビジネス版 追加 Safety Gate パターン（business-specific）
+// ============================================================
+
+describe('Business Safety Gate — 顧客・個人情報ファイル', () => {
+
+  it('blocks cat 顧客名簿.csv', () => {
+    const out = runHook(bashInput('cat 顧客名簿.csv'));
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /個人情報/);
+  });
+
+  it('blocks cat customers.csv', () => {
+    const out = runHook(bashInput('cat customers.csv'));
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /個人情報/);
+  });
+
+  it('blocks cat members.xlsx', () => {
+    const out = runHook(bashInput('cat members.xlsx'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('blocks grep email 個人情報データ.csv', () => {
+    const out = runHook(bashInput('grep email 個人情報データ.csv'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('blocks git add 顧客名簿.csv', () => {
+    const out = runHook(bashInput('git add 顧客名簿.csv'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('does NOT block cat regular_file.csv (no PII keyword)', () => {
+    const out = runHook(bashInput('cat data/analysis_results.csv'));
+    assert.notEqual(out.decision, 'block', '一般的なCSVはブロックしない');
+  });
+
+});
+
+describe('Business Safety Gate — 財務・給与データ', () => {
+
+  it('blocks cat 給与データ.csv', () => {
+    const out = runHook(bashInput('cat 給与データ.csv'));
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /財務/);
+  });
+
+  it('blocks cat salary.csv', () => {
+    const out = runHook(bashInput('cat salary.csv'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('blocks cat 財務諸表.xlsx', () => {
+    const out = runHook(bashInput('cat 財務諸表.xlsx'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('blocks git add 決算資料.xlsx', () => {
+    const out = runHook(bashInput('git add 決算資料.xlsx'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('blocks cat annual_report.pdf', () => {
+    const out = runHook(bashInput('cat annual_report.pdf'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('does NOT block cat report_summary.txt (no finance keyword)', () => {
+    const out = runHook(bashInput('cat report_summary.txt'));
+    assert.notEqual(out.decision, 'block', '財務キーワードなしはブロックしない');
+  });
+
+});
+
+describe('Business Safety Gate — 機密契約書', () => {
+
+  it('blocks git add 秘密保持契約書.pdf', () => {
+    const out = runHook(bashInput('git add 秘密保持契約書.pdf'));
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /契約書/);
+  });
+
+  it('blocks git add NDA_agreement.pdf', () => {
+    const out = runHook(bashInput('git add NDA_agreement.pdf'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('blocks git add confidential_contract.docx', () => {
+    const out = runHook(bashInput('git add confidential_contract.docx'));
+    assert.equal(out.decision, 'block');
+  });
+
+  it('does NOT block git add meeting_notes.docx (no contract keyword)', () => {
+    const out = runHook(bashInput('git add meeting_notes.docx'));
+    assert.notEqual(out.decision, 'block', '契約キーワードなしはブロックしない');
+  });
+
+});
+
+describe('Business BLOCK messages — ビジネス向けメッセージ確認', () => {
+
+  it('BLOCK message for rm -rf contains 何が起きるか and 次のステップ', () => {
+    const out = runHook(bashInput('rm -rf /'));
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /何が起きるか/);
+    assert.match(out.reason, /次のステップ/);
+  });
+
+  it('BLOCK message for .env git add mentions GitHubリスク', () => {
+    const out = runHook(bashInput('git add .env'));
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /Git/);
+    assert.match(out.reason, /次のステップ/);
+  });
+
+  it('HIGH message contains 要確認 prefix', () => {
+    const out = runHook(bashInput('git add -A'));
+    assert.equal(out.decision, 'ask_user');
+    assert.match(out.reason, /HIGH/);
+  });
+
+  it('HIGH message for git add -A mentions .envファイル', () => {
+    const out = runHook(bashInput('git add -A'));
+    assert.equal(out.decision, 'ask_user');
+    assert.match(out.reason, /\.env/);
+  });
+
+  it('HIGH message for DROP TABLE mentions バックアップ', () => {
+    const out = runHook(bashInput('DROP TABLE users'));
+    // DROP TABLE is BLOCK due to Safety Gate
+    assert.equal(out.decision, 'block');
+    assert.match(out.reason, /なぜ危険か/);
+  });
+
+  it('HIGH message for npx -y mentions slopsquatting', () => {
+    const out = runHook(bashInput('npx -y some-package'));
+    assert.equal(out.decision, 'ask_user');
+    assert.match(out.reason, /slopsquatting/);
   });
 
 });
