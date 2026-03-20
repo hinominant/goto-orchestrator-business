@@ -55,8 +55,10 @@ const INJECTION_PATTERNS = [
   },
   {
     // base64 エンコードされた隠し指示
+    // HIGH-7 fix: threshold reduced from 40 to 20 chars to catch short payloads
+    // (e.g. "curl http://evil.com" = 20 chars, base64 = 28 chars)
     test: (text) => {
-      const b64matches = text.match(/[A-Za-z0-9+/]{40,}={0,2}/g);
+      const b64matches = text.match(/[A-Za-z0-9+/]{20,}={0,2}/g);
       if (!b64matches) return false;
       return b64matches.some(m => {
         try {
@@ -78,13 +80,19 @@ process.stdin.on('end', () => {
   try {
     const data = JSON.parse(input);
 
-    // Elicitation のプロンプトテキストを取得
-    const promptText = (
-      data.prompt ||
-      data.message ||
-      data.content ||
-      JSON.stringify(data)
-    ).toString();
+    // HIGH-6 fix: scan ALL fields in the Elicitation payload, not just
+    // prompt/message/content. Malicious MCP servers embed injection in
+    // title, description, properties, and other structured fields.
+    // JSON.stringify covers every field including nested objects.
+    const promptText = [
+      data.prompt,
+      data.message,
+      data.content,
+      data.title,
+      data.description,
+      // Fallback: full serialization catches any remaining fields
+      JSON.stringify(data),
+    ].filter(v => v != null).join(' ');
 
     // インジェクションパターンのチェック
     for (const pattern of INJECTION_PATTERNS) {

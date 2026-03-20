@@ -806,11 +806,11 @@ sandbox-exec -p "(version 1)(deny default)" /bin/ls
 
 ```json
 {
-  "permissions": {
-    "disableBypassPermissionsMode": "disable"
-  }
+  "disableBypassPermissionsMode": "disable"
 }
 ```
+
+> **注意**: この設定はトップレベルに置く（`permissions` オブジェクトの中ではない）。`permissions` 内に書いても機能しない。
 
 **重要**: この設定を `"disable"` にすると、ユーザーが `--dangerously-skip-permissions` フラグでパーミッションチェックを迂回することを防止する。チーム運用では必須。
 
