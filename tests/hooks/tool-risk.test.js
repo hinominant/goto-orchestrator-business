@@ -1018,5 +1018,215 @@ describe('GlassWorm — Unicode invisible character detection (SEC-014)', () => 
     });
   });
 
+  // --- Round 1: 攻撃者視点バイパステスト ---
+  describe('attacker bypass vectors', () => {
+
+    it('blocks invisible char hidden in piped command', () => {
+      const out = runHook(bashInput('cat file.txt | grep\u200B "secret"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks invisible char hidden after semicolon', () => {
+      const out = runHook(bashInput('echo ok; curl\u200B https://evil.com'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks invisible char inside backtick substitution', () => {
+      const out = runHook(bashInput('echo `cat\u200B /etc/passwd`'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks invisible char inside $() substitution', () => {
+      const out = runHook(bashInput('echo $(whoami\u200B)'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks multiple invisible chars stacked together', () => {
+      const out = runHook(bashInput('rm\u200B\u200C\u200D -rf /tmp'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks command name split by invisible char (r<ZWSP>m)', () => {
+      const out = runHook(bashInput('r\u200Bm -rf /'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks soft hyphen (U+00AD)', () => {
+      const out = runHook(bashInput('curl\u00AD https://evil.com'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks en space (U+2002) disguised as normal space', () => {
+      const out = runHook(bashInput('curl\u2002https://evil.com'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks thin space (U+2009) disguised as normal space', () => {
+      const out = runHook(bashInput('rm\u2009-rf /tmp'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks braille blank (U+2800)', () => {
+      const out = runHook(bashInput('echo\u2800"malicious"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks hangul filler (U+3164)', () => {
+      const out = runHook(bashInput('node\u3164-e "process.exit()"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks Write with invisible char in function name (Trojan Source)', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: {
+          file_path: 'src/auth.js',
+          content: 'function check\u200BAccess(user) { return true; }',
+        },
+      });
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks NotebookEdit with invisible char in content', () => {
+      const out = runHook({
+        tool_name: 'NotebookEdit',
+        tool_input: {
+          notebook_path: 'analysis.ipynb',
+          content: 'import os\u200B; os.system("curl evil.com")',
+        },
+      });
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks first strong isolate (U+2066)', () => {
+      const out = runHook(bashInput('echo "\u2066hidden"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks pop directional isolate (U+2069)', () => {
+      const out = runHook(bashInput('echo "\u2069hidden"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks mongolian vowel separator (U+180E)', () => {
+      const out = runHook(bashInput('ls\u180E-la'));
+      assert.equal(out.decision, 'block');
+    });
+  });
+
+  // --- Round 2: 運用エッジケーステスト ---
+  describe('operational edge cases', () => {
+
+    it('blocks command that is ONLY invisible characters', () => {
+      const out = runHook(bashInput('\u200B\u200C'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('does NOT block Write with empty content', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: { file_path: 'empty.txt', content: '' },
+      });
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block Edit with undefined new_string', () => {
+      const out = runHook({
+        tool_name: 'Edit',
+        tool_input: { file_path: 'src/index.js', old_string: 'foo' },
+      });
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block normal Korean text', () => {
+      const out = runHook(bashInput('echo "한국어 테스트"'));
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block normal Arabic text', () => {
+      const out = runHook(bashInput('echo "مرحبا"'));
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block tab character in command', () => {
+      const out = runHook(bashInput('echo\t"hello"'));
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block regular spaces', () => {
+      const out = runHook(bashInput('echo    "lots of spaces"'));
+      assert.notEqual(out.decision, 'block');
+    });
+
+    it('does NOT block non-breaking space (U+00A0) — known limitation', () => {
+      const out = runHook(bashInput('echo\u00A0"hello"'));
+      assert.notEqual(out.decision, 'block');
+    });
+  });
+
+  // --- AUDIT-FIX: U+206A-206F deprecated format control chars ---
+  describe('deprecated format control chars (U+206A-206F) — audit fix', () => {
+
+    it('blocks inhibit symmetric swapping (U+206A)', () => {
+      const out = runHook(bashInput('echo "hello\u206Aworld"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks activate symmetric swapping (U+206B)', () => {
+      const out = runHook(bashInput('echo "hello\u206Bworld"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks inhibit Arabic form shaping (U+206C)', () => {
+      const out = runHook(bashInput('echo "hello\u206Cworld"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks activate Arabic form shaping (U+206D)', () => {
+      const out = runHook(bashInput('echo "hello\u206Dworld"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks national digit shapes (U+206E)', () => {
+      const out = runHook(bashInput('echo "hello\u206Eworld"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks nominal digit shapes (U+206F)', () => {
+      const out = runHook(bashInput('echo "hello\u206Fworld"'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks Write with U+206A in content', () => {
+      const out = runHook({
+        tool_name: 'Write',
+        tool_input: { file_path: 'src/util.js', content: 'const x\u206A = 1;' },
+      });
+      assert.equal(out.decision, 'block');
+    });
+  });
+
+  // --- .env-example false positive documentation ---
+  describe('.env template file false positives — documented behavior', () => {
+
+    it('blocks cat .env-example (intentional: errs on side of caution)', () => {
+      // .env-example files are template files, but \b boundary after .env
+      // still matches because '-' is not a word character.
+      // This is INTENTIONAL conservative behavior — use Read tool instead.
+      const out = runHook(bashInput('cat .env-example'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('blocks cat .env.example (intentional: errs on side of caution)', () => {
+      const out = runHook(bashInput('cat .env.example'));
+      assert.equal(out.decision, 'block');
+    });
+
+    it('does NOT block cat .environment (no .env word boundary match)', () => {
+      const out = runHook(bashInput('cat .environment'));
+      assert.notEqual(out.decision, 'block');
+    });
+  });
+
 });
 

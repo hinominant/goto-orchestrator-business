@@ -395,7 +395,7 @@ CVE: CVE-2026-21852（CVSS 5.3）
   - エディタ設定: VSCode の「Render Control Characters」有効化を推奨
 検知:
   - tool-risk.js: INVISIBLE_UNICODE_RE による Bash / Write / Edit の事前検査
-  - 検知対象文字: U+200B-200F, U+2060-2064, U+FEFF, U+202A-202E, U+2066-2069 他
+  - 検知対象文字: U+200B-200F, U+2060-2064, U+FEFF, U+202A-202E, U+2066-206F 他
 復旧:
   - 影響ファイルの特定: grep -rP '[\x{200B}-\x{200F}\x{2060}-\x{2064}\x{FEFF}]' .
   - 不可視文字の除去と再コミット

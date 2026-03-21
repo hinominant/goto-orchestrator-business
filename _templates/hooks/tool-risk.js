@@ -46,7 +46,7 @@ function highMsg(title, whatHappens, whyDangerous, nextSteps) {
 // === GlassWorm / Trojan Source: Unicode不可視文字検知 (SEC-014) ===
 // ゼロ幅スペース・方向制御文字などの不可視Unicode文字を検知する。
 // これらは人間のコードレビューで見えないまま悪意あるコードを混入させる攻撃手法に使われる。
-const INVISIBLE_UNICODE_RE = /[\u200B\u200C\u200D\u200E\u200F\u2060\u2061\u2062\u2063\u2064\uFEFF\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180E\u2000-\u200A\u202A-\u202E\u2066-\u2069\u2800\u3164\uFFA0]/;
+const INVISIBLE_UNICODE_RE = /[\u200B\u200C\u200D\u200E\u200F\u2060\u2061\u2062\u2063\u2064\uFEFF\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180E\u2000-\u200A\u202A-\u202E\u2066-\u206F\u2800\u3164\uFFA0]/;
 
 // === Safety Gate Patterns (auto-block) ===
 
