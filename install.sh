@@ -15,8 +15,8 @@ set -euo pipefail
 REPO="hinominant/goto-orchestrator"
 BRANCH="main"
 
-# All 67 agents
-ALL_AGENTS="analyst anvil architect arena artisan atlas auditor bard bolt bridge builder canon canvas cipher compete director echo experiment flow forge gateway gear grove growth guardian harvest hone horizon judge launch lens magi morph muse navigator nexus palette polyglot probe pulse quill radar rally reel researcher retain rewind ripple scaffold schema scout scribe sentinel sherpa showcase spark specter stream sweep trace triage tuner vision voice voyager warden zen"
+# All 73 agents
+ALL_AGENTS="advocate analyst anvil architect arena artisan atlas auditor bard bolt bridge builder canon canvas cipher compete compliance comptroller counsel datashield director echo experiment flow forge gateway gear grove growth guardian harvest hone horizon judge launch lens magi morph muse navigator nexus palette polyglot privacy probe pulse quill radar rally reel researcher retain rewind ripple scaffold schema scout scribe sentinel sherpa showcase spark specter stream sweep trace triage tuner vision voice voyager warden zen"
 
 # Parse flags
 WITH_MCP=false

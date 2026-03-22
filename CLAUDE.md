@@ -2,7 +2,7 @@
 
 ## Overview
 
-Claude Code を安全に使うためのエージェントフレームワーク。67エージェント体制。27+プロトコル + 8スキル + Tool Risk Hooks（4-Hook体制）。Security-First設計で、初心者でも安心してClaude Codeを使い始められる。
+Claude Code を安全に使うためのエージェントフレームワーク。73エージェント体制。27+プロトコル + 8スキル + Tool Risk Hooks（4-Hook体制）。Security-First設計で、初心者でも安心してClaude Codeを使い始められる。
 
 各プロジェクトに `install.sh` でエージェント定義を配布する。このリポジトリ自体はレジストリであり、直接 clone して使うものではない。
 
@@ -30,6 +30,7 @@ goto-orchestrator/
 │   ├── anvil/           # CLI/TUI構築
 │   ├── arena/           # 競争/協力開発
 │   ├── auditor/         # 品質監査・SPEC準拠監査
+│   ├── advocate/        # 法務副査（counselのクロスチェック、判例・行政処分照合）
 │   ├── atlas/           # アーキテクチャ分析
 │   ├── bard/            # devグランブル投稿
 │   ├── bolt/            # パフォーマンス改善
@@ -37,7 +38,11 @@ goto-orchestrator/
 │   ├── canon/           # 標準準拠評価
 │   ├── canvas/          # 可視化（Mermaid等）
 │   ├── cipher/          # 意図解読
+│   ├── compliance/      # 上場審査・J-SOX IT統制・AIガバナンス主査（comptrollerとペア）
+│   ├── comptroller/     # 上場審査・IT統制の監査役（complianceのクロスチェック）
 │   ├── compete/         # 競合調査
+│   ├── counsel/         # 法務コンプライアンス主査（advocateとペア）
+│   ├── datashield/      # 個人情報保護副査（privacyのクロスチェック、GDPR・技術的実効性検証）
 │   ├── director/        # デモ動画撮影
 │   ├── echo/            # UXフロー検証
 │   ├── experiment/      # A/Bテスト設計
@@ -57,6 +62,7 @@ goto-orchestrator/
 │   ├── navigator/       # ブラウザ操作自動化
 │   ├── palette/         # ユーザビリティ改善
 │   ├── polyglot/        # i18n/l10n
+│   ├── privacy/         # 個人情報保護法準拠主査（datashieldとペア）
 │   ├── probe/           # DAST
 │   ├── pulse/           # KPI/トラッキング
 │   ├── quill/           # JSDoc/README
@@ -242,7 +248,7 @@ goto-orchestrator/
 ## Installation (per-project)
 
 ```bash
-# 全67エージェント（初心者は --with-hooks を推奨）
+# 全73エージェント（初心者は --with-hooks を推奨）
 curl -sL https://raw.githubusercontent.com/hinominant/goto-orchestrator/main/install.sh | bash -s -- --with-hooks
 
 # 選択インストール
