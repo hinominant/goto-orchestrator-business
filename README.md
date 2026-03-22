@@ -528,4 +528,4 @@ Radar が8次元加重ルーブリックで品質スコアリング（70+ PASS /
 
 ## License
 
-MIT — Copyright (c) 2026 株式会社Luna（株式会社ルナ）
+Copyright (c) 2026 株式会社Luna（株式会社ルナ） — 詳細は [LICENSE](./LICENSE) を参照

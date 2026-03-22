@@ -10,7 +10,7 @@
     "auto-repair": "node scripts/auto-repair.js",
     "auto-repair:dry": "node scripts/auto-repair.js --dry-run"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=18.0.0"
   }
