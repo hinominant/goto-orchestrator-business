@@ -6,4 +6,4 @@
 {"timestamp":"2026-03-20T12:53:28.173Z","session_id":"test-session-123","tool":"Read","input_summary":"/tmp/test.txt","success":true}
 {"timestamp":"2026-03-20T13:06:20.670Z","session_id":"test123","tool":"Bash","input_summary":"git status","success":true}
 {"timestamp":"2026-03-20T13:10:48.597Z","session_id":"../evil","tool":"Bash","input_summary":"ls","success":true}
-{"timestamp":"2026-03-20T15:57:29.751Z","session_id":"test","operator":"Keiji","project":"goto-orchestrator","tool":"Bash","input_summary":"echo ${API_KEY}","success":true}
+{"timestamp":"2026-03-20T15:57:29.751Z","session_id":"test","operator":"Keiji","project":"LM-orchestrator-business","tool":"Bash","input_summary":"echo ${API_KEY}","success":true}

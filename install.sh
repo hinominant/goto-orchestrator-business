@@ -1,10 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Goto Orchestrator Installer
+# LM Orchestrator Installer
 # Usage:
-#   curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks
-#   curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks nexus rally builder radar
+#   curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-business/main/install.sh | bash -s -- --with-hooks
+#   curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-business/main/install.sh | bash -s -- --with-hooks nexus rally builder radar
 #   ./install.sh --with-hooks             # Install all agents + hooks (recommended)
 #   ./install.sh                           # Install all agents
 #   ./install.sh nexus rally builder       # Install specific agents
@@ -12,7 +12,7 @@ set -euo pipefail
 #   ./install.sh --with-permissions        # Install agents + safe permission defaults
 #   ./install.sh --with-hooks             # Install agents + tool risk hooks (4-Hook体制) ★推奨
 
-REPO="hinominant/LM-orchestrator-engineer"
+REPO="hinominant/LM-orchestrator-business"
 BRANCH="main"
 
 # All 73 agents
@@ -35,7 +35,7 @@ done
 # Default: install all if no agent args
 AGENTS="${AGENT_ARGS[*]:-$ALL_AGENTS}"
 
-echo "=== Goto Orchestrator Installer ==="
+echo "=== LM Orchestrator Installer ==="
 echo "Source: github.com/${REPO}"
 echo ""
 if [ "$WITH_HOOKS" = true ]; then
@@ -58,7 +58,7 @@ trap "rm -rf $CLONE_DIR" EXIT
 
 echo "Downloading agent definitions..."
 if ! git clone --depth 1 --branch "$BRANCH" "https://github.com/${REPO}.git" "$CLONE_DIR" 2>&1; then
-  echo "Error: Failed to download LM-orchestrator-engineer. Check your internet connection and try again."
+  echo "Error: Failed to download LM-orchestrator-business. Check your internet connection and try again."
   exit 1
 fi
 
@@ -200,14 +200,14 @@ fi
 
 echo "[9/12] Checking CLAUDE.md..."
 if [ -f "CLAUDE.md" ]; then
-  if grep -q "Goto Orchestrator" CLAUDE.md 2>/dev/null; then
+  if grep -q "LM Orchestrator" CLAUDE.md 2>/dev/null; then
     echo "  -> CLAUDE.md already has framework reference, skipping"
   else
     cat >> CLAUDE.md << 'FRAMEWORK_EOF'
 
 ## Agent Team Framework
 
-This project uses [Goto Orchestrator](https://github.com/hinominant/LM-orchestrator-engineer).
+This project uses [LM Orchestrator](https://github.com/hinominant/LM-orchestrator-business).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules
@@ -230,7 +230,7 @@ else
 
 ## Agent Team Framework
 
-This project uses [Goto Orchestrator](https://github.com/hinominant/LM-orchestrator-engineer).
+This project uses [LM Orchestrator](https://github.com/hinominant/LM-orchestrator-business).
 Agent definitions are in `.claude/agents/`. Framework protocol is in `.claude/agents/_framework.md`.
 
 ### Key Rules

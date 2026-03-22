@@ -1,5 +1,5 @@
 #!/bin/bash
-# pre-commit hook — Goto Orchestrator 品質ゲート
+# pre-commit hook — LM Orchestrator 品質ゲート
 # このフックは git commit の直前に自動実行される。
 # テストが通らない限り、コミットは物理的にブロックされる。
 # git commit --no-verify は settings.json の deny リストで禁止済み（Bash(git commit --no-verify*)）。
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo ""
-echo "🔒 [pre-commit] Goto Orchestrator 品質ゲート"
+echo "🔒 [pre-commit] LM Orchestrator 品質ゲート"
 
 # -----------------------------------------------------------------------
 # 1. ドキュメントのみの変更ならテストスキップ（高速パス）

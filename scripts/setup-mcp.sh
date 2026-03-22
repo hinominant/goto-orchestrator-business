@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "=== MCP Server Setup ==="
-echo "Setting up recommended MCP servers for Goto Orchestrator"
+echo "Setting up recommended MCP servers for LM Orchestrator"
 echo ""
 
 # Check prerequisites

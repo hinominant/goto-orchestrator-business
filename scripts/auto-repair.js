@@ -240,7 +240,7 @@ function repair(hookPath) {
 // ============================================================
 
 async function main() {
-  console.log('🔍 Goto Orchestrator — Hook Auto-Repair\n');
+  console.log('🔍 LM Orchestrator — Hook Auto-Repair\n');
   if (DRY_RUN) console.log('(DRY-RUN mode — no changes will be made)\n');
 
   const issues = [];

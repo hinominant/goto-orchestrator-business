@@ -1,6 +1,6 @@
-# Security Architecture — LM-orchestrator-engineer
+# Security Architecture — LM-orchestrator-business
 
-> LM-orchestrator-engineer のコアドキュメント。Claude Code を安全に使うための多層防御アーキテクチャの完全仕様。
+> LM-orchestrator-business のコアドキュメント。Claude Code を安全に使うための多層防御アーキテクチャの完全仕様。
 >
 > 各セクションは品質基準（問題 → 根本原因 → 解決策 → 検知 → 復旧）で記述する。
 
@@ -28,7 +28,7 @@
 
 ### 基本原則
 
-Claude Code はシェルコマンド実行、ファイル読み書き、ネットワークアクセスという強力な能力を持つ。この能力を「制限する」のではなく「安全に活かす」ことが LM-orchestrator-engineer の設計思想である。
+Claude Code はシェルコマンド実行、ファイル読み書き、ネットワークアクセスという強力な能力を持つ。この能力を「制限する」のではなく「安全に活かす」ことが LM-orchestrator-business の設計思想である。
 
 #### 1.1 便利さと安全性のトレードオフ
 

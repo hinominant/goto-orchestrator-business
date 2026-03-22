@@ -1,5 +1,5 @@
 {
-  "_comment": "Goto Orchestrator — セキュリティ重視の推奨設定。install.sh --with-permissions で配布。enableAllProjectMcpServers:false = プロジェクトのMCPサーバーを自動有効化しない（CVE-2025-59536）。disableBypassPermissionsMode:disable = --dangerously-skip-permissions フラグを無効化（CVE-2026-21852）。トップレベルに置くこと（permissions オブジェクト内は無効）。",
+  "_comment": "LM Orchestrator — セキュリティ重視の推奨設定。install.sh --with-permissions で配布。enableAllProjectMcpServers:false = プロジェクトのMCPサーバーを自動有効化しない（CVE-2025-59536）。disableBypassPermissionsMode:disable = --dangerously-skip-permissions フラグを無効化（CVE-2026-21852）。トップレベルに置くこと（permissions オブジェクト内は無効）。",
   "enableAllProjectMcpServers": false,
   "disableBypassPermissionsMode": "disable",
   "sandbox": {

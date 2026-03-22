@@ -86,7 +86,7 @@
    発生日時: YYYY年MM月DD日 HH:MM頃
    発覚日時: YYYY年MM月DD日 HH:MM頃
    事案の概要:
-     [例] AI開発ツール（Claude Code / LM-orchestrator-engineer）の利用過程で、
+     [例] AI開発ツール（Claude Code / LM-orchestrator-business）の利用過程で、
      個人情報を含むファイルが意図せず Anthropic API に送信された。
 
 2. 漏えい等が発生した個人データの項目

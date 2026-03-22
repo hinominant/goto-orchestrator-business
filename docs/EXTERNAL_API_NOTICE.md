@@ -1,6 +1,6 @@
 # 外部 API 利用時の法的注意事項
 
-> 本文書は、LM-orchestrator-engineer が利用・連携する外部 API およびパッケージに関する法的注意事項をまとめたものである。
+> 本文書は、LM-orchestrator-business が利用・連携する外部 API およびパッケージに関する法的注意事項をまとめたものである。
 
 ---
 
@@ -21,7 +21,7 @@ Anthropic の Acceptable Use Policy（AUP）に基づき、以下の利用は禁
 | **武器・暴力** | 武器の製造、暴力の促進 |
 | **児童保護** | 児童の搾取に関するあらゆるコンテンツ |
 
-**LM-orchestrator-engineer での対応:**
+**LM-orchestrator-business での対応:**
 - ガードレール設定により、AUP 違反となり得る入力を制限
 - エージェントのプロンプトに AUP 遵守の指示を組み込み
 
@@ -88,7 +88,7 @@ Anthropic の Acceptable Use Policy（AUP）に基づき、以下の利用は禁
 
 - Figma 上のデザインデータの著作権は、原則としてデザインの作成者に帰属する
 - API 経由でデザインデータを取得する場合、著作権者の許諾が必要
-- LM-orchestrator-engineer がデザインデータを AI に送信する場合、著作権法上の複製に該当する可能性がある
+- LM-orchestrator-business がデザインデータを AI に送信する場合、著作権法上の複製に該当する可能性がある
 
 ---
 

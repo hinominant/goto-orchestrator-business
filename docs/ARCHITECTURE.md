@@ -1,4 +1,4 @@
-# Goto Orchestrator — System Architecture
+# LM Orchestrator — System Architecture
 
 > **Version**: 1.0
 > **Last Updated**: 2026-03-19
@@ -22,7 +22,7 @@
 
 ## 1. システム概要
 
-Goto Orchestrator は Claude Code のエージェントチーム構築フレームワークである。セキュリティを最優先設計原則とし、初心者エンジニアでも安全に Claude Code を活用できる環境を提供する。
+LM Orchestrator は Claude Code のエージェントチーム構築フレームワークである。セキュリティを最優先設計原則とし、初心者エンジニアでも安全に Claude Code を活用できる環境を提供する。
 
 ### 構成要素
 
@@ -160,11 +160,11 @@ User Request
                  ┌──────────────────────────┐
                  │  GitHub Repository        │
                  │  hinominant/              │
-                 │   LM-orchestrator-engineer       │
+                 │   LM-orchestrator-business       │
                  │                           │
-                 │  67 agents + references   │
+                 │  73 agents + references   │
                  │  27+ protocols            │
-                 │  6 commands + 4 skills    │
+                 │  9 commands + 9 skills    │
                  │  4 hooks + templates      │
                  └────────┬─────────────────┘
                           │
@@ -427,7 +427,7 @@ cognitiveMode: decomposition
 
 ### Layer 3: Execution（実行）
 
-#### 67エージェント ドメイン分類
+#### 73エージェント ドメイン分類
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -876,7 +876,7 @@ install.sh [options] [agents...]
 | `--with-permissions` | Sandbox + Permission deny/allow ルール設定 | 推奨 |
 | `--with-mcp` | MCP サーバー一括セットアップ | 任意 |
 | `(エージェント名)` | 指定エージェントのみインストール | 軽量運用時 |
-| `(引数なし)` | 全67エージェントインストール | デフォルト |
+| `(引数なし)` | 全73エージェントインストール | デフォルト |
 
 ### インストール後ファイルレイアウト
 

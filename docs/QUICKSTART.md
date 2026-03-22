@@ -12,15 +12,15 @@
 
 ```bash
 # 推奨: git clone → 手動実行（スクリプト内容を確認してからインストール）
-git clone --depth 1 https://github.com/hinominant/LM-orchestrator-engineer.git /tmp/LM-orchestrator-engineer
-cat /tmp/LM-orchestrator-engineer/install.sh  # 内容を確認
-cd your-project && /tmp/LM-orchestrator-engineer/install.sh --with-hooks
+git clone --depth 1 https://github.com/hinominant/LM-orchestrator-business.git /tmp/LM-orchestrator-business
+cat /tmp/LM-orchestrator-business/install.sh  # 内容を確認
+cd your-project && /tmp/LM-orchestrator-business/install.sh --with-hooks
 
 # ワンライナー（信頼できるネットワーク環境でのみ使用）
-curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks
+curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-business/main/install.sh | bash -s -- --with-hooks
 
 # よく使うエージェントのみ
-curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks nexus builder radar scout
+curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-business/main/install.sh | bash -s -- --with-hooks nexus builder radar scout
 
 # MCP連携付き
 ./install.sh --with-hooks --with-mcp
@@ -85,7 +85,7 @@ ls .claude/agents/  # エージェントファイルが存在するか確認
 
 ファイルがなければ再インストール:
 ```bash
-curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks
+curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-business/main/install.sh | bash -s -- --with-hooks
 ```
 
 ### コンテキストが切れた

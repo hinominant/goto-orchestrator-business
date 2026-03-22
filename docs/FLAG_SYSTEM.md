@@ -10,7 +10,7 @@
 
 フラグシステムは、Claude Code の操作中に発生するリスク・異常・注意事項をリアルタイムで検知し、ユーザーに通知するアラートシステムである。
 
-LM-orchestrator-engineer の Security-First 設計思想の中核を担い、`tool-risk.js` Hook、`safety-check` スキル、`secret-scan` スキル、Guardrail L1-L4 と連携して動作する。
+LM-orchestrator-business の Security-First 設計思想の中核を担い、`tool-risk.js` Hook、`safety-check` スキル、`secret-scan` スキル、Guardrail L1-L4 と連携して動作する。
 
 ### フラグレベル定義
 

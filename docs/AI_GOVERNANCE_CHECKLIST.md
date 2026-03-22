@@ -1,24 +1,24 @@
 # AI事業者ガイドライン（第1.1版）準拠チェックリスト
 
-> 本文書は、総務省・経済産業省「AI事業者ガイドライン（第1.1版）」に基づき、LM-orchestrator-engineer の開発・提供・利用における遵守事項を整理したものである。
+> 本文書は、総務省・経済産業省「AI事業者ガイドライン（第1.1版）」に基づき、LM-orchestrator-business の開発・提供・利用における遵守事項を整理したものである。
 
 ---
 
 ## 1. AI事業者ガイドラインにおける主体分類
 
-### 1.1 LM-orchestrator-engineer における主体の整理
+### 1.1 LM-orchestrator-business における主体の整理
 
-| 主体 | 定義 | LM-orchestrator-engineer での該当者 |
+| 主体 | 定義 | LM-orchestrator-business での該当者 |
 |------|------|--------------------------------------|
 | **AI 開発者** | AI モデル・システムを開発する者 | Anthropic（Claude モデル開発者） |
-| **AI 提供者** | AI を組み込んだサービス・システムを提供する者 | LM-orchestrator-engineer の開発・提供者 |
-| **AI 利用者** | AI サービス・システムを業務に利用する者 | LM-orchestrator-engineer のエンドユーザー |
+| **AI 提供者** | AI を組み込んだサービス・システムを提供する者 | LM-orchestrator-business の開発・提供者 |
+| **AI 利用者** | AI サービス・システムを業務に利用する者 | LM-orchestrator-business のエンドユーザー |
 
 ---
 
 ## 2. AI 開発者の義務一覧（Anthropic に期待する事項）
 
-LM-orchestrator-engineer は Anthropic の Claude API を利用するため、AI 開発者としての義務は Anthropic が負う。以下は確認・期待する事項である。
+LM-orchestrator-business は Anthropic の Claude API を利用するため、AI 開発者としての義務は Anthropic が負う。以下は確認・期待する事項である。
 
 | # | 義務 | 内容 | 確認状況 |
 |---|------|------|----------|
@@ -32,7 +32,7 @@ LM-orchestrator-engineer は Anthropic の Claude API を利用するため、AI
 
 ---
 
-## 3. AI 提供者の義務一覧（LM-orchestrator-engineer 開発・提供者）
+## 3. AI 提供者の義務一覧（LM-orchestrator-business 開発・提供者）
 
 | # | 義務 | 内容 | 対応状況 | 対応方法 |
 |---|------|------|----------|----------|
@@ -133,7 +133,7 @@ LM-orchestrator-engineer は Anthropic の Claude API を利用するため、AI
 当部門では、業務効率化のため以下の AI ツールを導入しています。
 
 1. 利用ツール
-   - LM-orchestrator-engineer（Anthropic Claude API ベース）
+   - LM-orchestrator-business（Anthropic Claude API ベース）
 
 2. 利用目的
    - ソフトウェア開発の支援（コード生成、レビュー、テスト作成）
@@ -193,7 +193,7 @@ LM-orchestrator-engineer は Anthropic の Claude API を利用するため、AI
 
 ISO/IEC 42001（AI マネジメントシステム）との対応関係を以下に整理する。
 
-| ISO/IEC 42001 条項 | 内容 | AI事業者ガイドライン対応 | LM-orchestrator-engineer 対応 |
+| ISO/IEC 42001 条項 | 内容 | AI事業者ガイドライン対応 | LM-orchestrator-business 対応 |
 |-------------------|------|--------------------------|-------------------------------|
 | 4. 組織の状況 | 利害関係者のニーズ・期待の理解 | 主体分類（開発者/提供者/利用者） | 本文書 セクション1 |
 | 5. リーダーシップ | AI 方針の策定 | AI利用方針の明確化 | CLAUDE.md |
