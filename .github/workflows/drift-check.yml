@@ -5,11 +5,11 @@ on:
     paths:
       - 'agents/**'
       - 'agents/_base.tmpl'
-      - '_templates/hooks/**'
-      - '_common/TOOL_RISK.md'
-      - '_common/DUAL_CHECK.md'
-      - 'scripts/auto-repair.js'
+      - '_templates/**'
+      - '_common/**'
+      - 'scripts/**'
       - 'skills/**'
+      - 'install.sh'
 
 permissions:
   contents: read

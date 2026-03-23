@@ -37,6 +37,12 @@ function main() {
         const lastEntry = JSON.parse(lines[lines.length - 1]);
         prevHash = lastEntry._hash || prevHash;
       }
+    } else {
+      // ローテーション後: チェーンファイルから前ハッシュを引き継ぐ（証跡連続性の維持）
+      const chainFile = path.join(logDir, '.hash-chain-prev');
+      if (fs.existsSync(chainFile)) {
+        prevHash = fs.readFileSync(chainFile, 'utf8').trim() || prevHash;
+      }
     }
   } catch (_e) { /* first entry or corrupted — start fresh chain */ }
 
@@ -66,13 +72,17 @@ function main() {
 
     // --- ログローテーション (O-2 fix) ---
     // 保存期間ポリシー: アクティブログは最大5MB、超過時は日付付きでアーカイブ
-    // アーカイブログは最低1年間保存（削除は手動または外部ツールで管理）
+    // アーカイブログは最低1年間、推奨3年以上保存（削除は手動または外部ツールで管理）
     const MAX_LOG_BYTES = 5 * 1024 * 1024; // 5MB
     try {
       const stats = fs.statSync(logFile);
       if (stats.size > MAX_LOG_BYTES) {
         const archiveName = `tool-log.${new Date().toISOString().slice(0, 10)}.jsonl`;
         const archivePath = path.join(logDir, archiveName);
+        // ハッシュチェーン連結: アーカイブの最終ハッシュを引き継ぎファイルに保存
+        // 新しいログファイルの初回エントリはこのハッシュから連結される
+        const chainFile = path.join(logDir, '.hash-chain-prev');
+        fs.writeFileSync(chainFile, prevHash);
         fs.renameSync(logFile, archivePath);
       }
     } catch (_statErr) { /* file doesn't exist yet */ }
