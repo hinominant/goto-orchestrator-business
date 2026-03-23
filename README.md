@@ -2,7 +2,7 @@
 
 Claude Code を安全に使うためのエージェントフレームワーク。
 
-初心者エンジニアでも安心して Claude Code を活用できるよう、**Security-First** で設計されたエージェントチーム構築フレームワーク。73エージェント + 27+共通プロトコル + Tool Risk Hooks（4-Hook体制）で、強力かつ安全な開発体験を提供する。
+初心者エンジニアでも安心して Claude Code を活用できるよう、**Security-First** で設計されたエージェントチーム構築フレームワーク。73エージェント + 30共通プロトコル + Tool Risk Hooks（4-Hook体制）で、強力かつ安全な開発体験を提供する。
 
 ---
 
@@ -97,7 +97,10 @@ your-project/
 │   │   ├── code-simplifier.md # 動作不変のコードクリーンアップ
 │   │   ├── playground.md     # 単一HTML生成
 │   │   ├── chrome.md         # ブラウザ操作自動化
-│   │   └── pr-review.md     # 多面的PRレビュー
+│   │   ├── pr-review.md     # 多面的PRレビュー
+│   │   ├── retro.md          # スプリントレトロスペクティブ
+│   │   ├── implement.md      # 新機能追加ワークフロー
+│   │   └── quality-gate.md   # Push前品質ゲート
 │   ├── skills/
 │   │   ├── spec-compliance.md # SPEC準拠チェック
 │   │   ├── test-coverage.md  # カバレッジ分析
@@ -105,7 +108,9 @@ your-project/
 │   │   ├── diff-analysis.md  # Diff分析
 │   │   ├── secret-scan.md    # シークレット検出スキャン
 │   │   ├── safety-check.md   # 安全性チェック
-│   │   └── external-install-check.md  # 外部コンテンツ導入前セキュリティチェック
+│   │   ├── external-install-check.md  # 外部コンテンツ導入前セキュリティチェック
+│   │   ├── data-guard.md     # データ保護事前チェック
+│   │   └── design-md.md      # Figma → DESIGN.md 変換
 │   └── scripts/
 │       └── cloud/
 │           ├── codespace.sh      # Codespaces CLIラッパー
@@ -270,7 +275,7 @@ User Request
 | **Bard** | 3ペルソナ（Codex/Gemini/Claude）でdevグランブル投稿 |
 | **Lens** | コードベース理解・構造把握・機能探索（コード書かない） |
 
-## Common Protocols (27+)
+## Common Protocols (30)
 
 エージェントの動作を統一する共通プロトコル。`_common/` ディレクトリに格納され、フレームワーク (`_framework.md`) から参照される。
 
