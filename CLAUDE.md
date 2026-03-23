@@ -1,11 +1,79 @@
 # LM Orchestrator Framework
 
-## Overview
+Claude Code を安全に使うためのエージェントフレームワーク。73エージェント・30プロトコル・9スキル・9コマンド・Tool Risk Hooks（4-Hook体制）。Security-First設計。
 
-Claude Code を安全に使うためのエージェントフレームワーク。73エージェント体制。30プロトコル + 9スキル + Tool Risk Hooks（4-Hook体制）。Security-First設計で、初心者でも安心してClaude Codeを使い始められる。
+---
 
-各プロジェクトに `install.sh` でエージェント定義を配布する。このリポジトリ自体はレジストリであり、直接 clone して使うものではない。
+## Document Map（逆引き）
 
+| やりたいこと | 読むべきファイル |
+|---|---|
+| セキュリティ設計を知りたい | `docs/SECURITY_ARCHITECTURE.md` |
+| エージェントを追加したい | `agents/_base.tmpl` + 本ファイル Contributing セクション |
+| 上場審査・IT統制チェック | `agents/compliance/SKILL.md` + `agents/comptroller/SKILL.md` |
+| 個人情報保護チェック | `agents/privacy/SKILL.md` + `agents/datashield/SKILL.md` |
+| 法務チェック | `agents/counsel/SKILL.md` + `agents/advocate/SKILL.md` |
+| デザインフロー | `skills/design-md.md` + `commands/frontend-design.md` |
+| インシデント対応 | `docs/AI_INCIDENT_RESPONSE.md` |
+| 越境移転対応 | `docs/CROSS_BORDER_TRANSFER.md` |
+| ガードレールレベル詳細 | `docs/GUARDRAIL_LEVELS.md` |
+| 自動修復の仕組み | `docs/AUTO_REPAIR.md` |
+| Cloud実行ルーティング | `_common/CLOUD_ROUTING.md` + `docs/CLOUD_ARCHITECTURE.md` |
+| セッション復帰 | `_common/CONTEXT_RECOVERY.md` |
+| 営業秘密保護 | `docs/TRADE_SECRET_GUIDE.md` |
+| 外部API利用の法的注意 | `docs/EXTERNAL_API_NOTICE.md` |
+| AIガバナンスチェック | `docs/AI_GOVERNANCE_CHECKLIST.md` |
+| 設計判断の経緯（ADR） | `docs/DESIGN_DECISIONS.md` |
+| 初心者ガイド | `docs/BEGINNERS_GUIDE.md` + `docs/QUICKSTART.md` |
+
+---
+
+## Core Principles（12原則）
+
+1. **Security-first** - ツール実行前のリスク分類、シークレット保護、破壊的操作の警告
+2. **Hub-spoke** - 全通信はオーケストレーター経由
+3. **Minimum viable chain** - 必要最小限のエージェント構成
+4. **File ownership is law** - 並列実行時のファイルオーナーシップ厳守
+5. **Fail fast, recover smart** - ガードレール L1-L4
+6. **Context is precious** - `.agents/PROJECT.md` + `.agents/PROJECT_CONTEXT.md` で知識共有
+7. **Coordinator never codes** - コーディネーターは計画・委任・レビューに専念
+8. **Memory is persistent** - 学習内容を即座に永続化、毎セッション蓄積
+9. **Self-maintaining** - メモリ・ログの定期メンテナンスで品質を維持
+10. **Cloud-first execution** - 重い処理はGitHub Codespacesへ自動ルーティング
+11. **Simplicity first** - 最小影響コードを強制。過剰設計より3行の重複を許容する
+12. **Root cause only** - 一時的修正禁止。根本原因を見つけて直す
+
+---
+
+## PII-GUARD（個人情報保護 7層防御）
+
+| Layer | 防御層 | 担当 |
+|-------|--------|------|
+| L1 | データ保護事前チェック | `skills/data-guard.md` |
+| L2 | シークレット検出スキャン | `skills/secret-scan.md` |
+| L3 | Tool Risk Hooks（PreToolUse） | `_templates/hooks/tool-risk.js` |
+| L4 | 個人情報保護法準拠チェック（主査+副査） | `agents/privacy/` + `agents/datashield/` |
+| L5 | データ保護プロトコル | `_common/DATA_PROTECTION.md` |
+| L6 | 越境移転ガイドライン | `docs/CROSS_BORDER_TRANSFER.md` |
+| L7 | インシデント対応フロー | `docs/AI_INCIDENT_RESPONSE.md` |
+
+---
+
+## 必須ワークフロー（省略禁止）
+
+### 新機能追加・パターン追加・スクリプト変更時
+
+**必ず `/implement` を先に実行すること。**
+- テスト先書き（RED→GREEN）、ドキュメント同時更新、auto-repair.js 更新を強制する
+- 宣言なしに実装を開始した場合 → `/log-failure` 自動記録
+
+### 実装完了 → push 前
+
+**必ず `/quality-gate` を実行すること。**
+3フェーズ検証（標準テスト×2 → 視点違いテスト×2 → 外部監査×1）を経てコミットする。
+手動 `git commit` / `git push` は禁止。スキル経由必須。
+
+---
 
 ## Repository Structure
 
@@ -85,7 +153,6 @@ LM-orchestrator-engineer/
 │   ├── voice/           # フィードバック収集
 │   ├── voyager/         # E2Eテスト
 │   ├── warden/          # UX品質ゲート
-│   └── (各エージェントに references/ サブディレクトリあり)
 │   └── _base.tmpl       # SKILL.md構造テンプレート
 ├── commands/            # カスタムスラッシュコマンド（9個）
 │   ├── superpowers.md    # リサーチ→TDD→検証の大規模タスクモード
@@ -105,8 +172,8 @@ LM-orchestrator-engineer/
 │   ├── secret-scan.md      # シークレット検出スキャン
 │   ├── safety-check.md     # 安全性チェック
 │   ├── external-install-check.md  # 外部コンテンツ導入前セキュリティチェック
-│   ├── data-guard.md       # データ保護事前チェック（個人情報・本番データ・機密情報）
-│   └── design-md.md       # Figma → DESIGN.md 変換（デザイントークン翻訳層）
+│   ├── data-guard.md       # データ保護事前チェック
+│   └── design-md.md       # Figma → DESIGN.md 変換
 ├── _common/             # 共通プロトコル（30個）
 │   ├── AUTORUN.md
 │   ├── INTERACTION.md
@@ -115,105 +182,89 @@ LM-orchestrator-engineer/
 │   ├── PARALLEL.md
 │   ├── PROJECT_AFFINITY.md
 │   ├── REVERSE_FEEDBACK.md
-│   ├── MEMORY.md              # メモリ管理プロトコル
-│   ├── AGENT_MEMORY.md        # エージェントスコープメモリ
-│   ├── MAINTENANCE.md         # 定期メンテナンスプロトコル
-│   ├── MCP.md                 # MCP連携プロトコル
-│   ├── CLOUD_ROUTING.md       # Cloud実行ルーティングプロトコル
-│   ├── PROGRESS.md            # 進捗表示プロトコル
-│   ├── WORKFLOW_AUTOMATION.md # ワークフロー自動化プロトコル
-│   ├── CONTEXT_HYGIENE.md     # コンテキスト衛生管理
-│   ├── REVIEW_CHECKLIST.md    # レビューチェックリスト
-│   ├── PTC.md                 # Programmatic Tool Calling
-│   ├── TOOL_RISK.md           # ツールリスク管理（4-Hook体制）
-│   ├── MODEL_ROUTING.md       # Bloom Taxonomy モデルルーティング
-│   ├── CRITICAL_THINKING.md   # 批判的思考プロトコル
-│   ├── CONTEXT_RECOVERY.md    # セッション復帰プロトコル
-│   ├── TEST_POLICY.md         # テストポリシー（SKIP=FAIL）
-│   ├── SPEC_FIRST.md          # 仕様→テスト→実装パイプライン
-│   ├── ESCALATION.md          # 時間ベース3段階エスカレーション
-│   ├── SLIM_CONTEXT.md        # トークン予算管理
-│   ├── SKILL_DISCOVERY.md     # ボトムアップ スキル発見
-│   ├── COMPONENT_SPEC.md      # コンポーネント仕様プロトコル
-│   ├── ENGINE_ROUTING.md      # エンジンルーティングプロトコル
-│   ├── DATA_PROTECTION.md     # データ保護プロトコル
-│   └── DUAL_CHECK.md          # 2人体制強制プロトコル
+│   ├── MEMORY.md
+│   ├── AGENT_MEMORY.md
+│   ├── MAINTENANCE.md
+│   ├── MCP.md
+│   ├── CLOUD_ROUTING.md
+│   ├── PROGRESS.md
+│   ├── WORKFLOW_AUTOMATION.md
+│   ├── CONTEXT_HYGIENE.md
+│   ├── REVIEW_CHECKLIST.md
+│   ├── PTC.md
+│   ├── TOOL_RISK.md
+│   ├── MODEL_ROUTING.md
+│   ├── CRITICAL_THINKING.md
+│   ├── CONTEXT_RECOVERY.md
+│   ├── TEST_POLICY.md
+│   ├── SPEC_FIRST.md
+│   ├── ESCALATION.md
+│   ├── SLIM_CONTEXT.md
+│   ├── SKILL_DISCOVERY.md
+│   ├── COMPONENT_SPEC.md
+│   ├── ENGINE_ROUTING.md
+│   ├── DATA_PROTECTION.md
+│   └── DUAL_CHECK.md
 ├── _templates/          # プロジェクト配布テンプレート
-│   ├── CLAUDE_PROJECT.md  → .claude/agents/_framework.md
-│   ├── PROJECT.md         → .agents/PROJECT.md
-│   ├── PROJECT_CONTEXT.md → .agents/PROJECT_CONTEXT.md
-│   ├── SKILL_TEMPLATE.md  # 新エージェント作成用
-│   ├── FRONTMATTER_SPEC.md # Frontmatter YAML仕様書
-│   ├── mcp-settings.json  # MCP設定テンプレート
-│   ├── settings.json       # Hook + Permissions設定テンプレート
-│   ├── settings.local.example.json  # 個人用Permissions例
-│   ├── devcontainer.json  # Codespaces devcontainer設定
-│   ├── post-create.sh     # Codespaces初期化スクリプト
-│   └── hooks/             # Hook実装
-│       ├── tool-risk.js        # PreToolUse リスク評価
-│       ├── post-tool-use.js    # PostToolUse ログ記録
-│       ├── elicitation-guard.js # Elicitation インジェクションガード
-│       └── stop-hook.js        # Stop セッションサマリ
+│   ├── CLAUDE_PROJECT.md
+│   ├── PROJECT.md
+│   ├── PROJECT_CONTEXT.md
+│   ├── SKILL_TEMPLATE.md
+│   ├── FRONTMATTER_SPEC.md
+│   ├── mcp-settings.json
+│   ├── settings.json
+│   ├── settings.local.example.json
+│   ├── devcontainer.json
+│   ├── post-create.sh
+│   └── hooks/
+│       ├── tool-risk.js
+│       ├── post-tool-use.js
+│       ├── elicitation-guard.js
+│       └── stop-hook.js
 ├── scripts/
-│   ├── cloud/           # Cloud実行基盤（GitHub Codespaces）
-│   │   ├── codespace.sh    # Codespaces CLIラッパー（cs コマンド）
-│   │   └── .env.example    # 設定テンプレート
-│   ├── redash/          # Redash API ツール
+│   ├── cloud/
+│   │   ├── codespace.sh
+│   │   └── .env.example
+│   ├── redash/
 │   │   ├── query.sh
 │   │   └── .env.example
-│   ├── setup-mcp.sh    # MCP一括セットアップ
-│   └── check-drift.sh  # SKILL.md構造ドリフト検出
+│   ├── setup-mcp.sh
+│   └── check-drift.sh
 ├── docs/                # ドキュメント（18個）
-│   ├── QUICKSTART.md           # クイックスタート
-│   ├── BEGINNERS_GUIDE.md      # 初心者向けガイド
-│   ├── AGENT_SELECTION.md      # エージェント選択ガイド
-│   ├── FAQ.md                  # よくある質問
-│   ├── SECURITY_ARCHITECTURE.md # セキュリティアーキテクチャ（多層防御・CVE対応）
-│   ├── ARCHITECTURE.md         # システムアーキテクチャ全体設計
-│   ├── FLAG_SYSTEM.md          # フラグシステム仕様
-│   ├── GUARDRAIL_LEVELS.md     # ガードレールレベル（L1-L4）
-│   ├── AUTO_REPAIR.md          # 自動修復システム（AR-L0〜L3）
-│   ├── DESIGN_DECISIONS.md     # 設計決定記録（ADR 13件）
-│   ├── FAILURE_PATTERNS.md     # 失敗パターン辞書
-│   ├── CLOUD_ARCHITECTURE.md   # Cloud-first実行基盤アーキテクチャ
-│   ├── AI_GOVERNANCE_CHECKLIST.md # AI事業者ガイドライン準拠チェックリスト
-│   ├── AI_INCIDENT_RESPONSE.md # AI経由個人情報漏洩インシデント対応フロー
-│   ├── CROSS_BORDER_TRANSFER.md # 越境移転ガイドライン（個人情報保護法 第28条）
-│   ├── EXTERNAL_API_NOTICE.md  # 外部API利用時の法的注意事項
-│   ├── SECURITY_PATTERNS.md    # セキュリティパターン辞書
-│   └── TRADE_SECRET_GUIDE.md   # 営業秘密保護ガイドライン
+│   ├── QUICKSTART.md
+│   ├── BEGINNERS_GUIDE.md
+│   ├── AGENT_SELECTION.md
+│   ├── FAQ.md
+│   ├── SECURITY_ARCHITECTURE.md
+│   ├── ARCHITECTURE.md
+│   ├── FLAG_SYSTEM.md
+│   ├── GUARDRAIL_LEVELS.md
+│   ├── AUTO_REPAIR.md
+│   ├── DESIGN_DECISIONS.md
+│   ├── FAILURE_PATTERNS.md
+│   ├── CLOUD_ARCHITECTURE.md
+│   ├── AI_GOVERNANCE_CHECKLIST.md
+│   ├── AI_INCIDENT_RESPONSE.md
+│   ├── CROSS_BORDER_TRANSFER.md
+│   ├── EXTERNAL_API_NOTICE.md
+│   ├── SECURITY_PATTERNS.md
+│   └── TRADE_SECRET_GUIDE.md
 ├── .github/workflows/
-│   └── drift-check.yml  # PR時ドリフトチェックCI
-└── install.sh           # インストーラー（--with-hooks / --with-mcp / --with-permissions対応）
+│   └── drift-check.yml
+└── install.sh
 ```
+
+---
 
 ## Security-First Design
 
-このフレームワークの最大の特徴。Claude Codeの強力なツール実行能力を、安全に制御する。
-
 ### Tool Risk Hooks（4-Hook体制）
-
-ツール実行前にリスクレベルを自動分類し、危険な操作を事前警告する。初心者には `--with-hooks` でのインストールを強く推奨。
 
 | Level | Action | Example |
 |-------|--------|---------|
-| HIGH / BLOCK | ⚠️ 確認ダイアログ / ブロック | `rm -rf`, `git push --force`, `DROP TABLE`, 認証情報の外部送信 |
+| HIGH / BLOCK | 確認ダイアログ / ブロック | `rm -rf`, `git push --force`, `DROP TABLE`, 認証情報の外部送信 |
 | MEDIUM | 説明表示 | `git push`, `npm publish`, ファイル編集 |
 | LOW | サイレント通過 | `git status`, `Read`, `Grep` |
-
-### Secret Protection
-
-- `.env` ファイルを `.gitignore` に自動追加
-- API キー・トークン・認証情報が stdout/ログ/コミット履歴に露出することを防止
-- コード内にシークレットが検出された場合に警告
-
-### Operation Awareness Alerts
-
-破壊的コマンド実行前に明確な日本語警告を表示:
-- `rm -rf` → ⚠️ この操作は破壊的です: ファイル/ディレクトリの完全削除
-- `DROP TABLE` → ⚠️ この操作は破壊的です: テーブルの完全削除
-- `git push --force` → ⚠️ この操作は破壊的です: リモート履歴の強制上書き
-- `npm publish` → ⚠️ この操作は不可逆です: パッケージの公開
 
 ### Guardrail Levels（L1-L4）
 
@@ -224,9 +275,9 @@ LM-orchestrator-engineer/
 | L3 | セキュリティスキャン |
 | L4 | 破壊的操作の最終確認 |
 
-## Custom Commands (9)
+---
 
-エージェント召喚とは異なり、現在のセッションにワークフローモードを適用するスラッシュコマンド。
+## Commands (9)
 
 | Command | Purpose |
 |---------|---------|
@@ -236,13 +287,11 @@ LM-orchestrator-engineer/
 | `/playground` | 外部依存ゼロの単一HTMLツール生成 |
 | `/chrome` | Playwright でブラウザ操作自動化 |
 | `/pr-review` | 5観点（テスト/エラー/型/品質/シンプル化）の構造化レビュー |
-| `/retro` | スプリントレトロスペクティブ（Keep/Problem/Try 構造化記録） |
+| `/retro` | スプリントレトロスペクティブ（Keep/Problem/Try） |
 | `/implement` | 新機能追加ワークフロー（テスト先書き・ドキュメント同時更新） |
 | `/quality-gate` | Push前品質ゲート（3フェーズ検証→コミット→プッシュ） |
 
 ## Skills (9)
-
-エージェントから呼び出される再利用可能な手順スキル（原則 haiku で実行）。
 
 | Skill | Purpose |
 |-------|---------|
@@ -250,66 +299,32 @@ LM-orchestrator-engineer/
 | `test-coverage` | カバレッジ分析 |
 | `git-pr-prep` | PR準備 |
 | `diff-analysis` | Diff-aware分析 |
-| `secret-scan` | シークレット検出スキャン（APIキー・トークン・認証情報の検出） |
-| `safety-check` | 安全性チェック（破壊的操作・セキュリティリスクの事前評価） |
-| `external-install-check` | 外部コンテンツ（MCP・npm・スクリプト）導入前の必須セキュリティチェック |
-| `data-guard` | データ保護事前チェック（個人情報・本番データ・機密情報の除外確認） |
-| `design-md` | Figma → DESIGN.md 変換（デザイントークンをエージェント参照可能な形式に変換） |
+| `secret-scan` | シークレット検出スキャン |
+| `safety-check` | 安全性チェック（破壊的操作・セキュリティリスク事前評価） |
+| `external-install-check` | 外部コンテンツ導入前の必須セキュリティチェック |
+| `data-guard` | データ保護事前チェック（個人情報・本番データ・機密情報） |
+| `design-md` | Figma → DESIGN.md 変換（デザイントークン翻訳） |
 
-## Installation (per-project)
+---
+
+## Installation
 
 ```bash
-# 全73エージェント（初心者は --with-hooks を推奨）
+# 全オプション同時（推奨）
+./install.sh --with-hooks --with-mcp --with-permissions
+
+# リモートから（初心者は --with-hooks を推奨）
 curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks
 
 # 選択インストール
 curl -sL https://raw.githubusercontent.com/hinominant/LM-orchestrator-engineer/main/install.sh | bash -s -- --with-hooks nexus builder radar
-
-# Hooks付き（推奨: ツールリスク分類で安全に使える）
-./install.sh --with-hooks
-
-# MCP付きインストール
-./install.sh --with-mcp
-
-# Permissions付きインストール
-./install.sh --with-permissions
-
-# 全オプション同時（推奨）
-./install.sh --with-hooks --with-mcp --with-permissions
 ```
 
-## Core Principles
-
-1. **Security-first** - ツール実行前のリスク分類、シークレット保護、破壊的操作の警告
-2. **Hub-spoke** - 全通信はオーケストレーター経由
-3. **Minimum viable chain** - 必要最小限のエージェント構成
-4. **File ownership is law** - 並列実行時のファイルオーナーシップ厳守
-5. **Fail fast, recover smart** - ガードレール L1-L4
-6. **Context is precious** - `.agents/PROJECT.md` + `.agents/PROJECT_CONTEXT.md` で知識共有
-7. **Coordinator never codes** - コーディネーターは計画・委任・レビューに専念
-8. **Memory is persistent** - 学習内容を即座に永続化、毎セッション蓄積
-9. **Self-maintaining** - メモリ・ログの定期メンテナンスで品質を維持
-10. **Cloud-first execution** - 重い処理はGitHub Codespacesへ自動ルーティング（ルールは `_common/CLOUD_ROUTING.md`、CLIは `scripts/cloud/codespace.sh`）
-11. **Simplicity first** - 最小影響コードを強制。過剰設計より3行の重複を許容する
-12. **Root cause only** - 一時的修正禁止。根本原因を見つけて直す
-
-## 必須ワークフロー（省略禁止）
-
-### 新機能追加・パターン追加・スクリプト変更時
-
-**必ず `/implement` スキルを先に実行すること。**
-- テスト先書き（RED→GREEN）、ドキュメント同時更新、auto-repair.js 更新を強制する
-- 宣言なしに実装を開始した場合 → `/log-failure` 自動記録
-
-### 実装完了 → push 前
-
-**必ず `/quality-gate` スキルを実行すること。**
-3フェーズ検証（標準テスト×2 → 視点違いテスト×2 → 外部監査×1）を経てコミットする。
-手動 `git commit` / `git push` は禁止。スキル経由必須。
+---
 
 ## Contributing
 
-### エージェント追加
+### エージェント追加手順
 
 1. `agents/[name]/SKILL.md` を `agents/_base.tmpl` に従い作成（frontmatter必須）
 2. `install.sh` の `ALL_AGENTS` に名前を追加
