@@ -13,6 +13,20 @@ $ARGUMENTS
 
 ## 実行手順
 
+### Phase 0: Four Eyes Test（4観点テスト — 省略禁止）
+
+**Phase A に入る前に、必ず `/four-eyes-test` を実行すること。**
+
+4観点（エンジニア→データ→ユーザー→壊す人）で検証し、全てPASSして初めて Phase A に進む。
+詳細: `_common/FOUR_EYES_TEST.md`
+
+Four Eyes Test が FAIL した場合:
+1. 失敗した観点の問題を修正
+2. Four Eyes Test を観点1からやり直し
+3. 全観点 PASS 後に Phase A へ
+
+---
+
 ### Phase A: 標準テスト ×2（安定性確認）
 
 同じテストスイートを2回実行して不安定テストを検出する。
