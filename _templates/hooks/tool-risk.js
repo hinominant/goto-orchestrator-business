@@ -171,17 +171,36 @@ const SAFETY_GATE_PATTERNS = [
     // 顧客リスト、採用候補者、従業員データ等の個人情報を含む可能性が高いファイルを
     // cat/head/tail 等の Bash コマンドで読み取ることをブロックする。
     // 個人情報保護法: AI への入力は第三者提供に該当する可能性がある。
+    // AUDIT-FIX: rev/base64/cp/mv/tee も追加（バイパス防止）
     test: (cmd) =>
-      /\b(?:cat|head|tail|tac|less|more|sort|grep|awk|sed|nl|wc|diff|strings|xxd|od|hexdump)\s+[^\n|;&`]*(?:customer|候補者|applicant|candidate|employee|payroll|salary|personal|pii|顧客|従業員|給与|採用)/i.test(cmd),
+      /\b(?:cat|head|tail|tac|less|more|sort|grep|awk|sed|nl|wc|diff|strings|xxd|od|hexdump|rev|base64|cp|mv|tee)\s+[^\n|;&`]*(?:customer|候補者|applicant|candidate|employee|payroll|salary|personal|pii|顧客|従業員|給与|採用)/i.test(cmd),
     reason: 'Safety Gate: 個人情報ファイルの読み取りリスク — 顧客・候補者・従業員データは Claude Code への入力が禁止されています。マスキング後のデータを使用してください。詳細: _common/DATA_PROTECTION.md',
   },
   {
     // CSV/XLSX ファイルの Bash 読み取り警告（PII-GUARD-2）
     // CSVやExcelファイルは個人情報を含むことが多いため、Bash コマンドでの読み取りをブロック。
     // 正当なCSV読み取りは Read ツール経由（deny ルールで保護）で行う。
+    // AUDIT-FIX: rev/base64/cp/mv/tee/grep/awk/sed 追加（バイパス防止）
     test: (cmd) =>
-      /\b(?:cat|head|tail|tac|less|more|sort|nl|wc)\s+[^\n|;&`]*\.(?:csv|xlsx?|tsv)\b/i.test(cmd),
+      /\b(?:cat|head|tail|tac|less|more|sort|nl|wc|grep|awk|sed|rev|base64|cp|mv|tee)\s+[^\n|;&`]*\.(?:csv|xlsx?|tsv)\b/i.test(cmd),
     reason: 'Safety Gate: CSV/Excelファイルの読み取りリスク — これらのファイルは個人情報を含む可能性があります。/data-guard で事前チェックし、マスキング済みデータを使用してください。詳細: _common/DATA_PROTECTION.md',
+  },
+  {
+    // find -exec / xargs 経由のCSV/PIIファイル読み取りバイパス防止（PII-GUARD-4）
+    // find . -name "*.csv" -exec cat {} \; や find ... | xargs cat で
+    // PII-GUARD-1/2 をバイパスできる問題を防止する。
+    test: (cmd) =>
+      /\bfind\b.*(?:-exec|-execdir)\s+(?:cat|head|tail|less|more|sort|grep|awk|sed|base64|rev)\b/.test(cmd) ||
+      /\bfind\b.*\|\s*(?:xargs\s+)?(?:cat|head|tail|less|more|sort|grep|awk|sed|base64|rev)\b/.test(cmd) ||
+      /\bxargs\s+(?:cat|head|tail|less|more|sort|grep|awk|sed|base64|rev)\b/.test(cmd),
+    reason: 'Safety Gate: find/xargs 経由のファイル読み取りリスク — 個人情報を含むファイルを一括読み取りする可能性があります。対象ファイルを個別に確認してください。詳細: _common/DATA_PROTECTION.md',
+  },
+  {
+    // while read ループ経由のファイル読み取りバイパス防止（PII-GUARD-5）
+    // while read line; do echo "$line"; done < employee.csv
+    test: (cmd) =>
+      /while\s+.*read\b.*<\s*\S*(?:customer|候補者|applicant|candidate|employee|payroll|salary|personal|pii|顧客|従業員|給与|採用|\.csv|\.xlsx?|\.tsv)/i.test(cmd),
+    reason: 'Safety Gate: while read 経由のファイル読み取りリスク — 個人情報ファイルの内容がAIに入力される可能性があります。詳細: _common/DATA_PROTECTION.md',
   },
 ];
 
@@ -263,8 +282,30 @@ const LOW_TOOL_NAMES = new Set([
  * @param {object} toolInput - ツール入力
  * @returns {{ level: string, reason: string, additionalContext?: string }}
  */
+// PII ファイルパターン — Read/Grep ツールでも個人情報ファイルをブロック (F-1/F-2 fix)
+const PII_FILE_KEYWORDS = /(?:customer|候補者|applicant|candidate|employee|payroll|salary|personal|pii|顧客|従業員|給与|採用|member|contact|user_list|user_data|名簿)/i;
+const PII_DATA_EXTENSIONS = /\.(?:csv|xlsx?|tsv)$/i;
+
 function classifyRisk(toolName, toolInput) {
-  // Read-only tools are always LOW
+  // PII file protection for Read/Grep (F-1/F-2 fix)
+  // 個人情報キーワードを含むファイル名、またはCSV/XLSX/TSVは Read/Grep でもブロック
+  if (toolName === 'Read' && toolInput.file_path) {
+    const fp = toolInput.file_path;
+    if (PII_FILE_KEYWORDS.test(fp)) {
+      return { level: 'BLOCK', reason: 'Safety Gate: 個人情報ファイルの読み取りリスク — 顧客・候補者・従業員データは Claude Code への入力が禁止されています。マスキング後のデータを使用してください。詳細: _common/DATA_PROTECTION.md' };
+    }
+    if (PII_DATA_EXTENSIONS.test(fp)) {
+      return { level: 'BLOCK', reason: 'Safety Gate: CSV/Excelファイルの読み取りリスク — これらのファイルは個人情報を含む可能性があります。/data-guard で事前チェックし、マスキング済みデータを使用してください。詳細: _common/DATA_PROTECTION.md' };
+    }
+  }
+  if (toolName === 'Grep') {
+    const grepPath = toolInput.path || '';
+    if (PII_FILE_KEYWORDS.test(grepPath) || PII_DATA_EXTENSIONS.test(grepPath)) {
+      return { level: 'BLOCK', reason: 'Safety Gate: 個人情報ファイルの検索リスク — 個人情報を含む可能性のあるファイルへの Grep は禁止されています。詳細: _common/DATA_PROTECTION.md' };
+    }
+  }
+
+  // Read-only tools are always LOW (PII check passed above)
   if (LOW_TOOL_NAMES.has(toolName)) {
     return { level: 'LOW', reason: '' };
   }

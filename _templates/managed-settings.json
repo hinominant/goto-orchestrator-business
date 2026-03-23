@@ -6,10 +6,10 @@
   "enableAllProjectMcpServers": false,
   "disableBypassPermissionsMode": "disable",
 
-  "_managed_controls_comment": "組織管理統制フラグ。true にするとユーザーが個人設定で上書きできなくなる。導入初期は false で様子見、安定後に true に変更を推奨。",
-  "allowManagedPermissionRulesOnly": false,
-  "allowManagedHooksOnly": false,
-  "allowManagedDomainsOnly": false,
+  "_managed_controls_comment": "組織管理統制フラグ。true = ユーザーが個人設定で deny/hook/domain を上書き不可。上場準備企業では true を推奨（F-5 fix）。",
+  "allowManagedPermissionRulesOnly": true,
+  "allowManagedHooksOnly": true,
+  "allowManagedDomainsOnly": true,
 
   "sandbox": {
     "_comment": "OS レベルサンドボックス。機密ファイルへの直接アクセスをブロック。",
@@ -98,7 +98,15 @@
       "Bash(cat *candidates*)",
       "Bash(cat *customer*)",
       "Bash(cat *employee*)",
-      "Bash(cat *payroll*)"
+      "Bash(cat *payroll*)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit -n *)",
+      "Bash(python3 --command *)",
+      "Bash(node --eval *)",
+      "Write(.claude/hooks/*)",
+      "Edit(.claude/hooks/*)",
+      "Write(_templates/hooks/*)",
+      "Edit(_templates/hooks/*)"
     ]
   }
 }
