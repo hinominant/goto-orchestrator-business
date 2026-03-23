@@ -166,6 +166,23 @@ const SAFETY_GATE_PATTERNS = [
       /\b(?:head|tail|tac|less|more|sort|grep|awk|sed|vi|vim|nano|nl|wc|diff)\s+[^\n|;&`]*\.env\b/i.test(cmd),
     reason: 'Safety Gate: .envファイルの読み取りリスク — シークレット漏洩の危険。ファイル内容が必要な場合は Read ツールを使用してください',
   },
+  {
+    // 個人情報ファイルの直接読み取り防止（PII-GUARD-1）
+    // 顧客リスト、採用候補者、従業員データ等の個人情報を含む可能性が高いファイルを
+    // cat/head/tail 等の Bash コマンドで読み取ることをブロックする。
+    // 個人情報保護法: AI への入力は第三者提供に該当する可能性がある。
+    test: (cmd) =>
+      /\b(?:cat|head|tail|tac|less|more|sort|grep|awk|sed|nl|wc|diff|strings|xxd|od|hexdump)\s+[^\n|;&`]*(?:customer|候補者|applicant|candidate|employee|payroll|salary|personal|pii|顧客|従業員|給与|採用)/i.test(cmd),
+    reason: 'Safety Gate: 個人情報ファイルの読み取りリスク — 顧客・候補者・従業員データは Claude Code への入力が禁止されています。マスキング後のデータを使用してください。詳細: _common/DATA_PROTECTION.md',
+  },
+  {
+    // CSV/XLSX ファイルの Bash 読み取り警告（PII-GUARD-2）
+    // CSVやExcelファイルは個人情報を含むことが多いため、Bash コマンドでの読み取りをブロック。
+    // 正当なCSV読み取りは Read ツール経由（deny ルールで保護）で行う。
+    test: (cmd) =>
+      /\b(?:cat|head|tail|tac|less|more|sort|nl|wc)\s+[^\n|;&`]*\.(?:csv|xlsx?|tsv)\b/i.test(cmd),
+    reason: 'Safety Gate: CSV/Excelファイルの読み取りリスク — これらのファイルは個人情報を含む可能性があります。/data-guard で事前チェックし、マスキング済みデータを使用してください。詳細: _common/DATA_PROTECTION.md',
+  },
 ];
 
 // === Risk Classification Patterns ===

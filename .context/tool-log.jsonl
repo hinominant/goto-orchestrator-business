@@ -7,3 +7,5 @@
 {"timestamp":"2026-03-20T13:06:20.670Z","session_id":"test123","tool":"Bash","input_summary":"git status","success":true}
 {"timestamp":"2026-03-20T13:10:48.597Z","session_id":"../evil","tool":"Bash","input_summary":"ls","success":true}
 {"timestamp":"2026-03-20T15:57:29.751Z","session_id":"test","operator":"Keiji","project":"LM-orchestrator-business","tool":"Bash","input_summary":"echo ${API_KEY}","success":true}
+{"timestamp":"2026-03-23T05:24:12.617Z","session_id":"unknown","operator":"Keiji","project":"LM-orchestrator-business","environment":"development","tool":"Bash","input_summary":"cat file.txt","success":true,"_prev_hash":"0000000000000000000000000000000000000000000000000000000000000000","_hash":"0ed1ff78560ad41281c2409b4446ab7162d90c17d1ad3561ef9bf102de6649cb"}
+{"timestamp":"2026-03-23T05:24:17.832Z","session_id":"unknown","operator":"Keiji","project":"LM-orchestrator-business","environment":"development","tool":"Bash","input_summary":"npm test","success":true,"_prev_hash":"0ed1ff78560ad41281c2409b4446ab7162d90c17d1ad3561ef9bf102de6649cb","_hash":"3533ffe37b75b3eafa4a82cbbe1656cb4ed0485e0be024938e36c8b12c2d09d2"}

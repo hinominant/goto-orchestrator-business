@@ -92,8 +92,21 @@ function main() {
     // Log write failure is non-critical — continue without blocking
   }
 
-  // 結果を返す（ブロックしない）
-  console.log(JSON.stringify({ continue: true }));
+  // --- PII 出力検知（PII-GUARD-3: 出力防御） ---
+  // ツール出力に個人情報パターンが含まれている場合、additionalContext で警告を注入する。
+  // 個人情報がAIのコンテキストに混入した可能性を利用者に即時通知する。
+  const outputText = typeof tool_output === 'string' ? tool_output : JSON.stringify(tool_output || '');
+  const PII_WARNING = detectPII(outputText);
+
+  if (PII_WARNING) {
+    console.log(JSON.stringify({
+      continue: true,
+      additionalContext: PII_WARNING,
+    }));
+  } else {
+    // 結果を返す（ブロックしない）
+    console.log(JSON.stringify({ continue: true }));
+  }
 }
 
 function summarizeInput(toolName, input) {
@@ -114,6 +127,62 @@ function summarizeInput(toolName, input) {
     default:
       return JSON.stringify(input).substring(0, 100);
   }
+}
+
+/**
+ * PII（個人情報）パターン検知 — ツール出力に個人情報が含まれていないかチェック
+ * 検知した場合は警告メッセージを返す。検知しなかった場合は null を返す。
+ *
+ * 注意: 誤検知を最小化するため、複数パターンの同時検出（AND条件）を採用。
+ * 単一の電話番号やメールアドレスだけでは警告しない（コード内のサンプル等に対応）。
+ * 複数種類のPIIが同時に出力された場合に警告する。
+ */
+function detectPII(text) {
+  if (!text || text.length < 50) return null;
+
+  // 検査対象を先頭20KBに限定（パフォーマンス保護）
+  const sample = text.substring(0, 20480);
+
+  const patterns = {
+    email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+    jpPhone: /0[0-9]{1,4}-[0-9]{1,4}-[0-9]{3,4}/g,
+    intlPhone: /\+\d{1,3}[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g,
+    myNumber: /\d{4}\s?\d{4}\s?\d{4}/g,
+    creditCard: /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g,
+    jpAddress: /[都道府県].{1,4}[市区町村郡].{1,10}[0-9０-９]+/g,
+  };
+
+  let detectedTypes = 0;
+  const detectedNames = [];
+
+  for (const [name, regex] of Object.entries(patterns)) {
+    const matches = sample.match(regex);
+    // 3件以上のマッチで「データセット」と判断（単発のサンプルコードは除外）
+    if (matches && matches.length >= 3) {
+      detectedTypes++;
+      detectedNames.push(name);
+    }
+  }
+
+  // 2種類以上のPIIパターンが検出された場合、または1種類でも大量（10件以上）検出された場合
+  if (detectedTypes >= 2) {
+    return `⚠️ PII検出警告: ツール出力に個人情報パターンを検出しました（${detectedNames.join(', ')}）。` +
+      'この出力にはマスキングが必要な個人情報が含まれている可能性があります。' +
+      '個人情報を含むデータは Claude Code への入力が禁止されています。' +
+      '詳細: _common/DATA_PROTECTION.md';
+  }
+
+  // 単一種類でも大量検出
+  for (const [name, regex] of Object.entries(patterns)) {
+    const matches = sample.match(regex);
+    if (matches && matches.length >= 10) {
+      return `⚠️ PII検出警告: ツール出力に大量の個人情報パターンを検出しました（${name}: ${matches.length}件）。` +
+        'この出力にはマスキングが必要な個人情報が含まれている可能性があります。' +
+        '詳細: _common/DATA_PROTECTION.md';
+    }
+  }
+
+  return null;
 }
 
 main();
