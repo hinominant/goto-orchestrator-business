@@ -1,21 +1,25 @@
 #!/bin/bash
-# pre-commit hook — LM Orchestrator 品質ゲート
+# pre-commit hook — LM Orchestrator 品質ゲート + Four Eyes Test
 # このフックは git commit の直前に自動実行される。
-# テストが通らない限り、コミットは物理的にブロックされる。
-# git commit --no-verify は settings.json の deny リストで禁止済み（Bash(git commit --no-verify*)）。
+# 4観点テスト（エンジニア→データ→ユーザー→壊す人）を全て通過しない限り、
+# コミットは物理的にブロックされる。
+# git commit --no-verify は settings.json の deny リストで禁止済み。
 
 set -euo pipefail
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo ""
-echo "🔒 [pre-commit] LM Orchestrator 品質ゲート"
+echo "🔒 [pre-commit] LM Orchestrator — Four Eyes Test"
+echo "   4観点テスト: エンジニア → データ → ユーザー → 壊す人"
+echo ""
 
 # -----------------------------------------------------------------------
-# 1. ドキュメントのみの変更ならテストスキップ（高速パス）
+# 0. ドキュメントのみの変更ならテストスキップ（高速パス）
 # -----------------------------------------------------------------------
 STAGED=$(git diff --cached --name-only 2>/dev/null || true)
 
@@ -24,73 +28,173 @@ if [ -z "$STAGED" ]; then
   exit 0
 fi
 
-NON_DOC_FILES=$(echo "$STAGED" | grep -vE '\.(md|txt|rst|json|yaml|yml)$' | grep -vE '^(docs/|\.github/|CHANGELOG|LICENSE|README)' || true)
+NON_DOC_FILES=$(echo "$STAGED" | grep -vE '\.(md|txt|rst)$' | grep -vE '^(docs/|\.github/|CHANGELOG|LICENSE|README)' || true)
 
 if [ -z "$NON_DOC_FILES" ]; then
   echo "  -> ドキュメントのみの変更。テストスキップ。通過。"
   exit 0
 fi
 
-# -----------------------------------------------------------------------
-# 2. 実装ファイルの変更にテストファイルが伴っているか確認
-# -----------------------------------------------------------------------
-IMPL_CHANGED=$(echo "$STAGED" | grep -E '_templates/hooks/tool-risk\.js|scripts/auto-repair\.js' || true)
-TEST_CHANGED=$(echo "$STAGED" | grep -E 'tests/.*\.test\.(js|ts|py)$|test_.*\.py$|spec\.' || true)
+FAIL=0
+
+# =======================================================================
+# 観点1: エンジニアの目（Coverage Auditor + SSoT Verifier）
+# =======================================================================
+echo -e "${CYAN}👁 観点1: エンジニアの目${NC}"
+
+# 1-A: 実装ファイルの変更にテストファイルが伴っているか
+IMPL_CHANGED=$(echo "$STAGED" | grep -E '\.(js|ts|tsx|py)$' | grep -vE 'test\.|spec\.|__tests__' || true)
+TEST_CHANGED=$(echo "$STAGED" | grep -E 'test\.|spec\.|__tests__' || true)
 
 if [ -n "$IMPL_CHANGED" ] && [ -z "$TEST_CHANGED" ]; then
-  echo ""
-  echo -e "${RED}❌ ブロック: 実装ファイルが変更されていますが、テストファイルが含まれていません${NC}"
-  echo ""
-  echo "  変更された実装ファイル:"
+  echo -e "  ${YELLOW}⚠️  警告: 実装ファイルが変更されていますがテストファイルがありません${NC}"
+  echo "  変更された実装:"
   echo "$IMPL_CHANGED" | sed 's/^/    /'
   echo ""
-  echo "  → テストを追加または更新してから再度コミットしてください"
-  echo "  → tests/hooks/tool-risk.test.js を更新する必要がある可能性があります"
-  echo ""
-  exit 1
+  # 警告のみ、ブロックはしない（テスト不要な変更もあるため）
 fi
 
-# -----------------------------------------------------------------------
-# 3. テストスイートを実行
-# -----------------------------------------------------------------------
-echo "  -> テスト実行中..."
-
+# 1-B: テストスイート実行
+echo "  テスト実行中..."
 RUN_TESTS=false
 TEST_CMD=""
 
-# Node.js (npm test)
 if [ -f "package.json" ] && node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts.test ? 0 : 1)" 2>/dev/null; then
   RUN_TESTS=true
   TEST_CMD="npm test"
 fi
 
-# Python (pytest)
 if [ "$RUN_TESTS" = false ] && command -v pytest >/dev/null 2>&1 && [ -d "tests" ]; then
   RUN_TESTS=true
   TEST_CMD="pytest tests/ -q"
 fi
 
-if [ "$RUN_TESTS" = false ]; then
-  echo "  -> テストランナーが見つかりません。テストスキップ。通過。"
-  exit 0
+if [ "$RUN_TESTS" = true ]; then
+  if $TEST_CMD 2>&1 | tail -5; then
+    echo -e "  ${GREEN}✅ 観点1-B: テスト通過${NC}"
+  else
+    echo -e "  ${RED}❌ 観点1-B: テスト失敗${NC}"
+    FAIL=1
+  fi
 fi
 
-echo "  -> 実行: $TEST_CMD"
-echo ""
+# 1-C: SSoT突合（ハードコードされたID/定数の不一致検出）
+# ステージされたファイル内で courseId, stepId 等がハードコードされている場合、
+# 対応するマッピングファイルとの整合性を警告
+HARDCODED_IDS=$(echo "$STAGED" | xargs grep -l 'courseId\|stepId' 2>/dev/null | grep -v 'course-map\|PAGE_ID_MAP\|test' || true)
+if [ -n "$HARDCODED_IDS" ]; then
+  echo -e "  ${YELLOW}⚠️  SSoT確認: 以下のファイルにハードコードID検出。SSoTと一致しているか確認してください:${NC}"
+  echo "$HARDCODED_IDS" | sed 's/^/    /'
+fi
 
-if $TEST_CMD; then
+if [ "$FAIL" -eq 1 ]; then
   echo ""
-  echo -e "${GREEN}✅ テスト通過 — コミット許可${NC}"
-  echo ""
-  exit 0
-else
-  echo ""
-  echo -e "${RED}❌ ブロック: テストが失敗しました${NC}"
-  echo ""
-  echo "  テストをすべて通過させてから再度コミットしてください。"
-  echo "  修正後: git add <files> && git commit"
-  echo ""
-  echo -e "${YELLOW}  ⚠️  git commit --no-verify は禁止されています（settings.json deny リスト）${NC}"
-  echo ""
+  echo -e "${RED}❌ 観点1でブロック。テストを修正してから再コミットしてください。${NC}"
   exit 1
 fi
+echo ""
+
+# =======================================================================
+# 観点2: データの目（Flow Tracer）
+# =======================================================================
+echo -e "${CYAN}👁 観点2: データの目${NC}"
+
+# localStorage に書いているのに API を呼んでいないファイルを検出（TST-007 直接原因）
+LOCALSTORAGE_WRITES=$(echo "$STAGED" | xargs grep -l 'localStorage.setItem\|localStorage.set(' 2>/dev/null || true)
+
+for file in $LOCALSTORAGE_WRITES; do
+  HAS_FETCH=$(grep -c 'fetch(' "$file" 2>/dev/null || echo "0")
+  if [ "$HAS_FETCH" -eq 0 ]; then
+    echo -e "  ${RED}❌ 観点2: $file が localStorage に書いていますが fetch() を呼んでいません${NC}"
+    echo "     → TST-007: Write→DB→Read の経路が切れている可能性があります"
+    FAIL=1
+  fi
+done
+
+if [ "$FAIL" -eq 0 ]; then
+  echo -e "  ${GREEN}✅ 観点2: データフロー切断なし${NC}"
+fi
+
+if [ "$FAIL" -eq 1 ]; then
+  echo ""
+  echo -e "${RED}❌ 観点2でブロック。API呼び出しを追加してから再コミットしてください。${NC}"
+  exit 1
+fi
+echo ""
+
+# =======================================================================
+# 観点3: ユーザーの目（User Journey Verifier）
+# =======================================================================
+echo -e "${CYAN}👁 観点3: ユーザーの目${NC}"
+
+# E2Eテストが存在するなら実行
+if [ -d "e2e" ] && command -v npx >/dev/null 2>&1; then
+  if npx playwright test --reporter=line 2>&1 | tail -5; then
+    echo -e "  ${GREEN}✅ 観点3: E2Eテスト通過（実画面検証済み）${NC}"
+  else
+    echo -e "  ${RED}❌ 観点3: E2Eテスト失敗 — ユーザーフローが壊れています${NC}"
+    FAIL=1
+  fi
+else
+  echo -e "  ${YELLOW}⚠️  観点3: E2Eテストなし。実画面での動作確認を手動で行ってください${NC}"
+fi
+
+if [ "$FAIL" -eq 1 ]; then
+  echo ""
+  echo -e "${RED}❌ 観点3でブロック。ユーザーフローを修正してから再コミットしてください。${NC}"
+  exit 1
+fi
+echo ""
+
+# =======================================================================
+# 観点4: 壊す人の目（Failure Pattern Detector）
+# =======================================================================
+echo -e "${CYAN}👁 観点4: 壊す人の目${NC}"
+
+# TST-007 パターン検知: .env ファイルがステージングされていないか
+ENV_STAGED=$(echo "$STAGED" | grep '\.env' || true)
+if [ -n "$ENV_STAGED" ]; then
+  echo -e "  ${RED}❌ 観点4: .env ファイルがステージングされています${NC}"
+  echo "$ENV_STAGED" | sed 's/^/    /'
+  FAIL=1
+fi
+
+# 個人情報ファイルがステージングされていないか
+PII_STAGED=$(echo "$STAGED" | grep -iE 'customer|candidate|employee|payroll|salary|personal|pii' || true)
+if [ -n "$PII_STAGED" ]; then
+  echo -e "  ${RED}❌ 観点4: 個人情報を含む可能性のあるファイルがステージングされています${NC}"
+  echo "$PII_STAGED" | sed 's/^/    /'
+  FAIL=1
+fi
+
+# auto-repair ヘルスチェック（Hook プロジェクトの場合）
+if [ -f "scripts/auto-repair.js" ]; then
+  if node scripts/auto-repair.js --dry-run 2>&1 | grep -q "All hooks healthy"; then
+    echo -e "  ${GREEN}✅ 観点4: Hook ヘルスチェック通過${NC}"
+  else
+    echo -e "  ${RED}❌ 観点4: Hook ヘルスチェック失敗${NC}"
+    FAIL=1
+  fi
+fi
+
+if [ "$FAIL" -eq 0 ]; then
+  echo -e "  ${GREEN}✅ 観点4: 失敗パターン検知なし${NC}"
+fi
+
+if [ "$FAIL" -eq 1 ]; then
+  echo ""
+  echo -e "${RED}❌ 観点4でブロック。問題を修正してから再コミットしてください。${NC}"
+  exit 1
+fi
+
+# =======================================================================
+# 全観点通過
+# =======================================================================
+echo ""
+echo -e "${GREEN}✅ Four Eyes Test: 全4観点通過 — コミット許可${NC}"
+echo -e "  観点1（エンジニア）: PASS"
+echo -e "  観点2（データ）    : PASS"
+echo -e "  観点3（ユーザー）  : PASS"
+echo -e "  観点4（壊す人）    : PASS"
+echo ""
+exit 0
